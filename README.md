@@ -69,7 +69,7 @@ cd ./packages/caching && npm version prerelease --preid alpha
 Once you have executed the command to bump your version for pre-release, you can add/commit/push that change to the server. Once that is done, you can go to the rundeck job [prerelease package branch](https://infrastructure.getbuilt.com/rundeck/project/development/job/show/2DE8AF3A-150F-453B-8001-5A65D83CFE20) to point the `resilience4ts` repo to your working branch. This will kick off the prerelease package pipeline, which will publish the package to nexus with a --next tag. Afterwards, a consuming application can install the package similarly referencing the next tag.
 
 ```ts
-npm install @forts/node-shared-identity-context@next
+npm install @forts/resilience4ts-core@next
 ```
 
 Once you have executed the rundeck for the first time, you do not need to run it manually again. It will automatically run once you add/commit/push an updated prerelease version in your package.json.
