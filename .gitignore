@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+test-reports
+*.tsbuildinfo
+junit.xml
+.vscode/
+.idea/
+
+**/.turbo/*

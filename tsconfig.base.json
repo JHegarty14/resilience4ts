@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "allowJs": false,
+    "allowSyntheticDefaultImports": true,
+    "emitDecoratorMetadata": false,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "lib": ["esnext", "DOM"],
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": false,
+    "noImplicitThis": true,
+    "noImplicitAny": false,
+    "noUnusedParameters": false,
+    "strictNullChecks": true,
+    "pretty": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "strict": true,
+    "target": "es2018",
+    "noEmit": false,
+    "module": "commonjs",
+    "typeRoots": ["./node_modules/@types"]
+  },
+  "exclude": [
+    "node_modules",
+    "**/dist/**/*",
+    "**/jest.config.ts",
+    "**/*.spec.*",
+    "**/*.test.*",
+    "**/__mocks__/*",
+    "**/__tests__/*",
+    "./template/**/*"
+  ]
+}

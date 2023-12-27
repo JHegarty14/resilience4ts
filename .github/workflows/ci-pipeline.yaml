@@ -1,0 +1,38 @@
+name: GHActions CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build:
+    runs-on:
+      - self-hosted
+      - linux
+    steps:
+      - name: Extract Branch Name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with: # keep in sync with package.json
+          version: 8
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'pnpm'
+      - run: pnpm install
+      - name: Check Typescript
+        run: |
+          pnpm typecheck
+      - name: Check Prettier
+        run: |
+          pnpm prettier
+      - name: Run Tests
+        run: |
+          npm i -g pnpm && pnpm lint && pnpm test:ci

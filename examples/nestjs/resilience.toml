@@ -1,0 +1,36 @@
+[resilience]
+serviceName = "string"
+collectResourceUsage = true
+observationInterval = 3000
+maxUtilization = 0.9
+maxSafeUtilization = 0.75
+maxCpuUtilization = 0.9
+maxSafeCpuUtilization = 0.75
+delimiter = "string"
+
+[redis]
+redisHost = "localhost"
+redisPort = 6379
+redisPrefix = "local"
+maxConnectionAttempts = 100
+maxBackoff = 3000
+maxIncrBackoff = 500
+
+[scheduler]
+defaultInterval = 1000
+recoveryInterval = 10000
+runConsumer = true
+
+[scheduler.consumer]
+maxErrors = 100
+startBackoffAt = 25
+
+# [metrics]
+# captureInterval = 15000
+# exposeMetricsDashboard = false
+# minimumNumberOfCalls = 10
+# slowCallDurationThreshold = 1_000
+
+# [metrics.dataRetentionPolicy]
+# metricsBucketWindow = "1s"
+# retentionWindow = "1d"

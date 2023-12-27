@@ -1,0 +1,85 @@
+import EventEmitter from 'events';
+import { pino, BaseLogger } from 'pino';
+import { PersistenceFactory, RedisClientInstance } from './cache/cache.service';
+import { Scheduler } from './scheduler';
+import { ResilienceConfig } from './types';
+import { ConfigLoader, ResilienceKeyBuilder } from './util';
+
+export class ResilienceProviderService {
+  static instance?: ResilienceProviderService;
+  cache!: RedisClientInstance;
+  scheduler!: Scheduler;
+  readonly logger: BaseLogger;
+
+  private initialized: Promise<void>;
+
+  private constructor(
+    readonly config: ResilienceConfig,
+    private readonly _cache: Promise<RedisClientInstance>,
+    logger?: BaseLogger,
+    readonly emitter = new EventEmitter()
+  ) {
+    ResilienceKeyBuilder.new(config.resilience.serviceName, config.resilience.delimiter);
+    this.logger = logger ?? pino();
+    this.initialized = this.init();
+  }
+
+  static forRoot(config?: ResilienceConfig): ResilienceProviderService;
+  static forRoot(logger: BaseLogger): ResilienceProviderService;
+  static forRoot(envFile: string, logger: BaseLogger): ResilienceProviderService;
+  static forRoot(config: ResilienceConfig, logger: BaseLogger): ResilienceProviderService;
+  static forRoot(
+    envFileOrConfig: ResilienceConfig | string,
+    logger: BaseLogger
+  ): ResilienceProviderService;
+  static forRoot(
+    configOrLogger: ResilienceConfig | string | BaseLogger | undefined,
+    logger: BaseLogger = pino()
+  ): ResilienceProviderService {
+    if (ResilienceProviderService.instance) {
+      return ResilienceProviderService.instance;
+    }
+
+    if (typeof configOrLogger === 'string') {
+      const config: ResilienceConfig = ConfigLoader.loadConfig(configOrLogger);
+      ResilienceProviderService.instance = new ResilienceProviderService(
+        config,
+        PersistenceFactory(config.redis, logger),
+        logger
+      );
+    } else if (!configOrLogger || 'info' in configOrLogger) {
+      const config: ResilienceConfig = ConfigLoader.loadConfig('./resilience.toml');
+      ResilienceProviderService.instance = new ResilienceProviderService(
+        config,
+        PersistenceFactory(config.redis, configOrLogger ?? pino())
+      );
+    } else {
+      ResilienceProviderService.instance = new ResilienceProviderService(
+        configOrLogger,
+        PersistenceFactory(configOrLogger.redis, logger),
+        logger
+      );
+    }
+
+    return ResilienceProviderService.instance;
+  }
+
+  private async init(): Promise<void> {
+    this.cache = await this._cache;
+    this.scheduler = new Scheduler(this.cache, this.logger, this.config, this.emitter);
+    await this.scheduler.start();
+  }
+
+  async start() {
+    await this.initialized;
+
+    return;
+  }
+
+  async stop() {
+    await this.scheduler.stop();
+    await this.cache.disconnect();
+
+    ResilienceProviderService.instance = undefined;
+  }
+}
