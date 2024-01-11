@@ -1,7 +1,7 @@
 {
   "name": "@forts/resilience4ts-hedge",
   "version": "0.0.0",
-  "description": "",
+  "description": "Hedge pattern implementation for @forts/resilience4ts",
   "main": "dist/index.js",
   "files": [
     "dist"

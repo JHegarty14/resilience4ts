@@ -1,7 +1,7 @@
 {
   "name": "@forts/resilience4ts-core",
   "version": "0.0.0",
-  "description": "",
+  "description": "Core functionality for @forts/resilience4ts",
   "main": "dist/index.js",
   "files": [
     "dist"
@@ -12,7 +12,6 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "@built/node-shared-logger": "^0.0.7",
     "cron-parser": "^4.9.0",
     "human-interval": "^2.0.1",
     "object-hash": "^3.0.0",

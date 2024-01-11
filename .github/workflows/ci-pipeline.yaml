@@ -9,13 +9,13 @@ on:
 jobs:
   build:
     runs-on:
-      - self-hosted
-      - linux
+      - ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+
     steps:
-      - name: Extract Branch Name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: Checkout
         uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
@@ -24,7 +24,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
       - run: pnpm install
       - name: Check Typescript

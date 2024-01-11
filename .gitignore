@@ -6,5 +6,7 @@ test-reports
 junit.xml
 .vscode/
 .idea/
+.DS_Store
 
+**/.turbo
 **/.turbo/*

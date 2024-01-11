@@ -1,7 +1,7 @@
 {
   "name": "@forts/resilience4ts-open-telemetry",
   "version": "0.0.0",
-  "description": "",
+  "description": "OpenTelemetry integration for @forts/resilience4ts",
   "main": "dist/index.js",
   "files": [
     "dist"

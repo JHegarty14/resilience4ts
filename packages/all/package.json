@@ -1,7 +1,7 @@
 {
   "name": "@forts/resilience4ts-all",
   "version": "0.0.0",
-  "description": "",
+  "description": "All resilience4ts decorator packages in one, along with pipeline builder utilities",
   "main": "dist/index.js",
   "files": [
     "dist"

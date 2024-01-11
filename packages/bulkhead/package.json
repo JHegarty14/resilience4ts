@@ -1,7 +1,7 @@
 {
   "name": "@forts/resilience4ts-bulkhead",
   "version": "0.0.0",
-  "description": "",
+  "description": "Distributed bulkhead pattern implementation for @forts/resilience4ts",
   "main": "dist/index.js",
   "files": [
     "dist"

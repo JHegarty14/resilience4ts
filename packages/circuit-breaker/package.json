@@ -1,7 +1,7 @@
 {
   "name": "@forts/resilience4ts-circuit-breaker",
   "version": "0.0.0",
-  "description": "",
+  "description": "Distributed circuit breaker implementation for @forts/resilience4ts",
   "main": "dist/index.js",
   "files": [
     "dist"
