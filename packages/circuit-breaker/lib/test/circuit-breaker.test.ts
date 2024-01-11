@@ -1,24 +1,20 @@
 import { ResilienceProviderService } from '@forts/resilience4ts-core';
 import { setTimeout } from 'node:timers/promises';
 
-import { RedisMemoryServer } from 'redis-memory-server';
-
 import { CircuitBreaker } from '../circuit-breaker';
 import { CircuitBreakerStrategy } from '../types';
 
-jest.setTimeout(60000);
+jest.setTimeout(10000);
 
 let svc: ResilienceProviderService;
 let circuit: CircuitBreaker;
-let redisServer: RedisMemoryServer;
 let redisHost: string;
 let redisPort: number;
 
 describe('CircuitBreaker', () => {
   beforeAll(async () => {
-    redisServer = new RedisMemoryServer();
-    redisHost = await redisServer.getHost();
-    redisPort = await redisServer.getPort();
+    redisHost = '127.0.0.1';
+    redisPort = 6379;
   });
 
   it('should initialize CircuitBreaker', async () => {
@@ -32,11 +28,6 @@ describe('CircuitBreaker', () => {
         redisPassword: '',
         redisUser: '',
         redisPrefix: 'r4t-test',
-      },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: false,
       },
     });
     await svc.start();
@@ -66,11 +57,6 @@ describe('CircuitBreaker', () => {
         redisPassword: '',
         redisUser: '',
         redisPrefix: 'r4t-test',
-      },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: false,
       },
     });
     await svc.start();

@@ -3,7 +3,6 @@ import {
   type BulkheadConfig as BaseBulkheadConfig,
 } from '@forts/resilience4ts-all';
 import { TDecoratable } from '@forts/resilience4ts-core';
-import { RESILIENCE_METRICS } from '../constants';
 
 /**
  * Bulkhead Decorator
@@ -34,8 +33,6 @@ export const Bulkhead = (options: BulkheadConfig) => {
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
       return bulkhead.onBound(originalMethod, this)(...args);
     } as T;
-
-    Reflect.defineMetadata(RESILIENCE_METRICS, bulkhead, descriptor.value);
 
     return descriptor;
   };

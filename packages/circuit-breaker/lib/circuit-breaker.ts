@@ -1,7 +1,6 @@
 import {
   ResilienceDecorator,
   ResilienceProviderService,
-  Stopwatch,
   assertUnreachable,
   unwrap,
 } from '@forts/resilience4ts-core';
@@ -19,7 +18,7 @@ import {
   defaultCircuitBucket,
   recordToCircuitBucket,
 } from './types/circuit-breaker-model.type';
-import { CircuitBreakerMetricsImpl, KeyBuilder } from './internal';
+import { KeyBuilder } from './internal';
 
 /**
  * CircuitBreaker Decorator
@@ -46,10 +45,6 @@ export class CircuitBreaker implements ResilienceDecorator {
   ) {
     CircuitBreaker.core = ResilienceProviderService.forRoot();
     this.strategy = CircuitBreakerStrategyFactory.resolve(config);
-    this.Metrics = new CircuitBreakerMetricsImpl(
-      this.config,
-      CircuitBreaker.core.config.metrics?.captureInterval,
-    );
     this.initialized = this.init();
   }
 
@@ -105,14 +100,12 @@ export class CircuitBreaker implements ResilienceDecorator {
           assertUnreachable(circuitState);
       }
 
-      const stopwatch = Stopwatch.start();
-
       try {
         const result = await fn(...args);
-        await this.onSuccess(stopwatch);
+        await this.onSuccess();
         return result;
       } catch (e) {
-        await this.onError(stopwatch);
+        await this.onError();
         throw e;
       } finally {
         const activeBucket = await this.getActiveBucket();
@@ -149,14 +142,12 @@ export class CircuitBreaker implements ResilienceDecorator {
           assertUnreachable(circuitState);
       }
 
-      const stopwatch = Stopwatch.start();
-
       try {
         const result = await fn.call(self, ...args);
-        await this.onSuccess(stopwatch);
+        await this.onSuccess();
         return result;
       } catch (e) {
-        await this.onError(stopwatch);
+        await this.onError();
         throw e;
       } finally {
         const activeBucket = await this.getActiveBucket();
@@ -165,7 +156,7 @@ export class CircuitBreaker implements ResilienceDecorator {
     };
   }
 
-  private async onError(stopwatch: Stopwatch) {
+  private async onError() {
     const activeBucket = await this.getActiveBucket();
 
     const pipeline = CircuitBreaker.core.cache.multi();
@@ -182,8 +173,6 @@ export class CircuitBreaker implements ResilienceDecorator {
       bucketDetails.success,
     );
 
-    this.Metrics.onCallFailure(stopwatch.getElapsedMilliseconds());
-
     if (isThresholdExceeded) {
       CircuitBreaker.core.emitter.emit(CircuitEvents.open, this.name, this.tags);
       await CircuitBreaker.core.cache.zAdd(KeyBuilder.circuitRegistryKey(), {
@@ -194,7 +183,7 @@ export class CircuitBreaker implements ResilienceDecorator {
     }
   }
 
-  private async onSuccess(stopwatch: Stopwatch) {
+  private async onSuccess() {
     const activeBucket = await this.getActiveBucket();
 
     await CircuitBreaker.core.cache
@@ -207,8 +196,6 @@ export class CircuitBreaker implements ResilienceDecorator {
       .exec();
 
     CircuitBreaker.core.emitter.emit(CircuitEvents.closed, this.name);
-
-    this.Metrics.onCallSuccess(stopwatch.getElapsedMilliseconds());
   }
 
   withWhitelist(...errors: Error[]): CircuitBreaker {
@@ -255,7 +242,6 @@ export class CircuitBreaker implements ResilienceDecorator {
     }
 
     await this.incrementCounter(activeBucket, 'rejection');
-    this.Metrics.onCallNotPermitted();
     throw new CircuitOpenException(this.name);
   }
 
@@ -333,6 +319,4 @@ export class CircuitBreaker implements ResilienceDecorator {
   getName() {
     return this.name;
   }
-
-  readonly Metrics: CircuitBreakerMetricsImpl;
 }

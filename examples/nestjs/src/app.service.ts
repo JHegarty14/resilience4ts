@@ -53,7 +53,6 @@ export class AppService {
     }).on(this.appGateway.getHello)(args);
   }
 
-  // @Consumer('getHello')
   async receiveHello(args: unknown) {
     console.log('RECEIVED', args);
     return;

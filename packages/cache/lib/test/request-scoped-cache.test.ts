@@ -1,25 +1,19 @@
 import { ResilienceProviderService } from '@forts/resilience4ts-core';
-import { RedisMemoryServer } from 'redis-memory-server';
 import crypto from 'node:crypto';
 import { RequestScopedCache } from '../request-scoped-cache';
 import { RequestScopedCacheType } from '../types';
 
-jest.setTimeout(60000);
+jest.setTimeout(10000);
 
 let svc: ResilienceProviderService;
 let cache: RequestScopedCache;
-let redisServer: RedisMemoryServer;
 let redisHost: string;
 let redisPort: number;
 
 describe('RequestScopedCache', () => {
   beforeAll(async () => {
-    redisServer = new RedisMemoryServer();
-    redisHost = await redisServer.getHost();
-    redisPort = await redisServer.getPort();
-  });
-
-  it('should initialize cache', async () => {
+    redisHost = '127.0.0.1';
+    redisPort = 6379;
     svc = ResilienceProviderService.forRoot({
       resilience: {
         serviceName: 'r4t-test',
@@ -31,13 +25,11 @@ describe('RequestScopedCache', () => {
         redisUser: '',
         redisPrefix: 'r4t-test',
       },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: false,
-      },
     });
     await svc.start();
+  });
+
+  it('should initialize cache', async () => {
     const listener = jest.fn();
     svc.emitter.addListener('r4t-cache-ready', listener);
 
@@ -63,25 +55,6 @@ describe('RequestScopedCache', () => {
   });
 
   it('should cache the result of the decorated function - Local Strategy', async () => {
-    svc = ResilienceProviderService.forRoot({
-      resilience: {
-        serviceName: 'r4t-test',
-      },
-      redis: {
-        redisHost,
-        redisPort,
-        redisPassword: '',
-        redisUser: '',
-        redisPrefix: 'r4t-test',
-      },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: false,
-      },
-    });
-    await svc.start();
-
     const scope = {
       id: crypto.randomUUID(),
     };
@@ -108,25 +81,6 @@ describe('RequestScopedCache', () => {
   });
 
   it('should cache the result of the decorated function - Distributed Strategy', async () => {
-    svc = ResilienceProviderService.forRoot({
-      resilience: {
-        serviceName: 'r4t-test',
-      },
-      redis: {
-        redisHost,
-        redisPort,
-        redisPassword: '',
-        redisUser: '',
-        redisPrefix: 'r4t-test',
-      },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: false,
-      },
-    });
-    await svc.start();
-
     const scope = {
       id: crypto.randomUUID(),
     };

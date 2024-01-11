@@ -1,11 +1,7 @@
 import { ResilienceProviderService } from '@forts/resilience4ts-core';
 import type { ResilienceDecorator } from '@forts/resilience4ts-core';
 import { RateLimitViolationException } from './exceptions';
-import {
-  BaseRateLimiterStrategy,
-  RateLimiterMetrics,
-  RateLimiterStrategyFactory,
-} from './internal';
+import { BaseRateLimiterStrategy, RateLimiterStrategyFactory } from './internal';
 import { type RateLimiterConfig, RateLimiterConfigImpl } from './types';
 
 /**
@@ -28,7 +24,6 @@ export class RateLimiter implements ResilienceDecorator {
     private readonly tags: Map<string, string>,
   ) {
     RateLimiter.core = ResilienceProviderService.forRoot();
-    this.Metrics = new RateLimiterMetrics(RateLimiter.core.config.metrics?.captureInterval);
     this.initialized = this.init();
   }
 
@@ -43,10 +38,7 @@ export class RateLimiter implements ResilienceDecorator {
   private async init(): Promise<void> {
     await RateLimiter.core.start();
 
-    this.strategy = RateLimiterStrategyFactory.resolve(
-      RateLimiter.core.cache,
-      this.config,
-    ).withMetrics(this.Metrics);
+    this.strategy = RateLimiterStrategyFactory.resolve(RateLimiter.core.cache, this.config);
   }
 
   /**
@@ -102,6 +94,4 @@ export class RateLimiter implements ResilienceDecorator {
   getName() {
     return this.name;
   }
-
-  readonly Metrics: RateLimiterMetrics;
 }

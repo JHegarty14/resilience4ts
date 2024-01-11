@@ -1,11 +1,6 @@
 import { type ResilienceDecorator, ResilienceProviderService } from '@forts/resilience4ts-core';
 import { BulkheadFullException } from './exceptions';
-import {
-  BaseBulkheadStrategy,
-  BulkheadMetricsImpl,
-  BulkheadStrategyFactory,
-  KeyBuilder,
-} from './internal';
+import { BaseBulkheadStrategy, BulkheadStrategyFactory, KeyBuilder } from './internal';
 import { type BulkheadConfig, BulkheadConfigImpl } from './types';
 
 /**
@@ -29,7 +24,6 @@ export class Bulkhead implements ResilienceDecorator {
     private readonly tags: Map<string, string>,
   ) {
     Bulkhead.core = ResilienceProviderService.forRoot();
-    this.Metrics = new BulkheadMetricsImpl(config, Bulkhead.core.config.metrics?.captureInterval);
     this.initialized = this.init();
   }
 
@@ -57,9 +51,7 @@ export class Bulkhead implements ResilienceDecorator {
       await Bulkhead.core.cache.sAdd(KeyBuilder.bulkheadRegistryKey(), [this.name]);
     }
 
-    this.strategy = BulkheadStrategyFactory.resolve(Bulkhead.core.cache, this.config).withMetrics(
-      this.Metrics,
-    );
+    this.strategy = BulkheadStrategyFactory.resolve(Bulkhead.core.cache, this.config);
 
     Bulkhead.core.emitter.emit('r4t-bulkhead-ready', this.name, this.tags);
 
@@ -125,6 +117,4 @@ export class Bulkhead implements ResilienceDecorator {
   getName() {
     return this.name;
   }
-
-  readonly Metrics: BulkheadMetricsImpl;
 }

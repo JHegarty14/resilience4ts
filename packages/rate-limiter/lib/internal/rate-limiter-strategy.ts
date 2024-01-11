@@ -3,7 +3,6 @@ import { assertUnreachable } from '@forts/resilience4ts-core';
 import crypto from 'crypto';
 import { RateLimiterConfigImpl, RateLimiterScope } from '../types';
 import { KeyBuilder } from './key-builder';
-import { RateLimiterMetrics } from './rate-limiter-metrics';
 
 export class RateLimiterStrategyFactory {
   static resolve(cache: RedisClientInstance, config: RateLimiterConfigImpl) {
@@ -19,7 +18,6 @@ export class RateLimiterStrategyFactory {
 }
 
 export abstract class BaseRateLimiterStrategy {
-  protected metrics!: RateLimiterMetrics;
   constructor(
     protected readonly cache: RedisClientInstance,
     protected readonly config: RateLimiterConfigImpl,
@@ -64,10 +62,6 @@ export abstract class BaseRateLimiterStrategy {
       const rank = pipelineRes[pipelineRes.length - 1]?.toString();
       const rankInt = rank ? parseInt(rank) : undefined;
 
-      if (rankInt) {
-        this.metrics.onCounterValueResolved(rankInt, this.config.permitLimit);
-      }
-
       if (rankInt === undefined || rankInt >= this.config.permitLimit) {
         pipeline.zRem(key, uniqId);
         pipeline.zRem(czSet, uniqId);
@@ -79,11 +73,6 @@ export abstract class BaseRateLimiterStrategy {
     } catch {
       return false;
     }
-  }
-
-  withMetrics(metrics: RateLimiterMetrics) {
-    this.metrics = metrics;
-    return this;
   }
 }
 

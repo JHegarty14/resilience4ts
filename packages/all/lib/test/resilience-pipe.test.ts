@@ -3,38 +3,26 @@ import { Bulkhead } from '@forts/resilience4ts-bulkhead';
 import { Cache, RequestScopedCache, RequestScopedCacheType } from '@forts/resilience4ts-cache';
 import { CircuitBreaker, CircuitBreakerStrategy } from '@forts/resilience4ts-circuit-breaker';
 import { ConcurrentLock } from '@forts/resilience4ts-concurrent-lock';
+import { Fallback } from '@forts/resilience4ts-fallback';
+import { Hedge } from '@forts/resilience4ts-hedge';
 import { RateLimiter, RateLimiterScope } from '@forts/resilience4ts-rate-limiter';
 import { Retry } from '@forts/resilience4ts-retry';
 import { Timeout } from '@forts/resilience4ts-timeout';
-
 import crypto from 'crypto';
 
 import { ResiliencePipe } from '../resilience-pipe';
 
-import { RedisMemoryServer } from 'redis-memory-server';
-import { Fallback } from '@forts/resilience4ts-fallback';
-import { Hedge } from '@forts/resilience4ts-hedge';
-
-jest.setTimeout(60000);
+jest.setTimeout(10000);
 
 let svc: ResilienceProviderService;
 let pipe: ResiliencePipe<any, any>;
-let redisServer: RedisMemoryServer;
 let redisHost: string;
 let redisPort: number;
 
 describe('ResiliencePipe', () => {
   beforeAll(async () => {
-    redisServer = new RedisMemoryServer();
-    redisHost = await redisServer.getHost();
-    redisPort = await redisServer.getPort();
-  });
-
-  afterAll(async () => {
-    await redisServer.stop();
-  });
-
-  it('should initialize ResiliencePipe', async () => {
+    redisHost = '127.0.0.1';
+    redisPort = 6379;
     svc = ResilienceProviderService.forRoot({
       resilience: {
         serviceName: 'r4t-test',
@@ -46,14 +34,11 @@ describe('ResiliencePipe', () => {
         redisUser: '',
         redisPrefix: 'r4t-test',
       },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: true,
-      },
     });
     await svc.start();
+  });
 
+  it('should initialize ResiliencePipe', async () => {
     const decorated = jest.fn().mockResolvedValue('OK');
 
     const bulkhead = Bulkhead.of('test', {

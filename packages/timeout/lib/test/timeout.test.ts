@@ -1,30 +1,24 @@
 import { OperationCancelledException, ResilienceProviderService } from '@forts/resilience4ts-core';
 import { Timeout } from '../timeout';
 
-import { RedisMemoryServer } from 'redis-memory-server';
 import { setTimeout } from 'timers/promises';
 import { TimeoutExceededException } from '../exceptions';
 
-jest.setTimeout(60000);
+jest.setTimeout(10000);
 
 let svc: ResilienceProviderService;
 let timeout: Timeout;
-let redisServer: RedisMemoryServer;
 let redisHost: string;
 let redisPort: number;
 
 describe('Timeout', () => {
   beforeAll(async () => {
-    redisServer = new RedisMemoryServer();
-    redisHost = await redisServer.getHost();
-    redisPort = await redisServer.getPort();
-  });
-
-  afterAll(async () => {
-    await redisServer.stop();
+    redisHost = '127.0.0.1';
+    redisPort = 6379;
   });
 
   it('should initialize timeout', async () => {
+    console.log('IT PRINTS');
     svc = ResilienceProviderService.forRoot({
       resilience: {
         serviceName: 'r4t-test',
@@ -35,11 +29,6 @@ describe('Timeout', () => {
         redisPassword: '',
         redisUser: '',
         redisPrefix: 'r4t-test',
-      },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: false,
       },
     });
     await svc.start();
@@ -58,24 +47,6 @@ describe('Timeout', () => {
   });
 
   it('should timeout according to specified interval', async () => {
-    svc = ResilienceProviderService.forRoot({
-      resilience: {
-        serviceName: 'r4t-test',
-      },
-      redis: {
-        redisHost,
-        redisPort,
-        redisPassword: '',
-        redisUser: '',
-        redisPrefix: 'r4t-test',
-      },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: false,
-      },
-    });
-    await svc.start();
     const listener = jest.fn();
     svc.emitter.addListener('r4t-timeout-ready', listener);
 
@@ -96,25 +67,6 @@ describe('Timeout', () => {
   });
 
   it('should use passed signal to cancel the operation', async () => {
-    svc = ResilienceProviderService.forRoot({
-      resilience: {
-        serviceName: 'r4t-test',
-      },
-      redis: {
-        redisHost,
-        redisPort,
-        redisPassword: '',
-        redisUser: '',
-        redisPrefix: 'r4t-test',
-      },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: false,
-      },
-    });
-    await svc.start();
-
     const decorated = jest.fn().mockImplementation(async () => {
       await setTimeout(2000);
       return 'OK';

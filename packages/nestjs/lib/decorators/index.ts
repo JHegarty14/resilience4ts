@@ -3,7 +3,6 @@ export * from './cache-buster.decorator';
 export * from './cache.decorator';
 export * from './circuit-breaker.decorator';
 export * from './concurrent-lock.decorator';
-export * from './consumer.decorator';
 export * from './fallback.decorator';
 export * from './hedge.decorator';
 export * from './rate-limiter.decorator';

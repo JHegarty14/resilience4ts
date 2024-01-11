@@ -1,14 +1,12 @@
 import EventEmitter from 'events';
 import { pino, BaseLogger } from 'pino';
 import { PersistenceFactory, RedisClientInstance } from './cache/cache.service';
-import { Scheduler } from './scheduler';
 import { ResilienceConfig } from './types';
 import { ConfigLoader, ResilienceKeyBuilder } from './util';
 
 export class ResilienceProviderService {
   static instance?: ResilienceProviderService;
   cache!: RedisClientInstance;
-  scheduler!: Scheduler;
   readonly logger: BaseLogger;
 
   private initialized: Promise<void>;
@@ -36,6 +34,7 @@ export class ResilienceProviderService {
     configOrLogger: ResilienceConfig | string | BaseLogger | undefined,
     logger: BaseLogger = pino(),
   ): ResilienceProviderService {
+    console.log('CONFIG OR LOGGER', configOrLogger);
     if (ResilienceProviderService.instance) {
       return ResilienceProviderService.instance;
     }
@@ -66,8 +65,6 @@ export class ResilienceProviderService {
 
   private async init(): Promise<void> {
     this.cache = await this._cache;
-    this.scheduler = new Scheduler(this.cache, this.logger, this.config, this.emitter);
-    await this.scheduler.start();
   }
 
   async start() {
@@ -77,7 +74,6 @@ export class ResilienceProviderService {
   }
 
   async stop() {
-    await this.scheduler.stop();
     await this.cache.disconnect();
 
     ResilienceProviderService.instance = undefined;

@@ -1,6 +1,5 @@
 import { RateLimiter as RateLimiterImpl, type RateLimiterConfig } from '@forts/resilience4ts-all';
 import { TDecoratable } from '@forts/resilience4ts-core';
-import { RESILIENCE_METRICS } from '../constants';
 
 /**
  * RateLimiter Decorator
@@ -27,8 +26,6 @@ export const RateLimiter = (options: RateLimiterConfig) => {
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
       return retry.onBound(originalMethod, this)(...args);
     } as T;
-
-    Reflect.defineMetadata(RESILIENCE_METRICS, retry, descriptor.value);
 
     return descriptor;
   };

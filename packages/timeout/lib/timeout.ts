@@ -1,13 +1,7 @@
-import {
-  OperationCancelledException,
-  Stopwatch,
-  SafePromise,
-  ResilienceProviderService,
-} from '@forts/resilience4ts-core';
+import { OperationCancelledException, SafePromise } from '@forts/resilience4ts-core';
 import type { ResilienceDecorator } from '@forts/resilience4ts-core';
 import { setTimeout } from 'timers/promises';
 import { InvalidArgumentException, TimeoutExceededException } from './exceptions';
-import { TimeoutMetrics } from './internal';
 import type { TimeoutConfig, TimeoutOptions } from './types';
 
 /**
@@ -26,11 +20,6 @@ export class Timeout implements ResilienceDecorator {
     if (config.timeout < 0) {
       throw new InvalidArgumentException('config.timeout must be greater than 0');
     }
-
-    this.Metrics = new TimeoutMetrics(
-      this.config,
-      ResilienceProviderService.instance?.config?.metrics?.captureInterval,
-    );
   }
 
   static of(name: string, config: TimeoutConfig): Timeout {
@@ -53,8 +42,6 @@ export class Timeout implements ResilienceDecorator {
       const timeoutCtrl = new AbortController();
       const ctrl = new AbortController();
 
-      const stopwatch = Stopwatch.start();
-
       try {
         const result = await SafePromise.race<Return | TimeoutExceededException>([
           fn(...args),
@@ -62,15 +49,10 @@ export class Timeout implements ResilienceDecorator {
         ]);
 
         if (result instanceof TimeoutExceededException) {
-          this.Metrics.onTimeout();
           throw result;
         }
 
-        this.Metrics.onSuccess(stopwatch.getElapsedMilliseconds());
         return result;
-      } catch (err: unknown) {
-        this.Metrics.onFailure(stopwatch.getElapsedMilliseconds());
-        throw err;
       } finally {
         timeoutCtrl.abort();
       }
@@ -95,8 +77,6 @@ export class Timeout implements ResilienceDecorator {
       const timeoutCtrl = new AbortController();
       const ctrl = new AbortController();
 
-      const stopwatch = Stopwatch.start();
-
       try {
         const result = await SafePromise.race<Return | TimeoutExceededException>([
           fn.call(self, ...args),
@@ -104,15 +84,10 @@ export class Timeout implements ResilienceDecorator {
         ]);
 
         if (result instanceof TimeoutExceededException) {
-          this.Metrics.onTimeout();
           throw result;
         }
 
-        this.Metrics.onSuccess(stopwatch.getElapsedMilliseconds());
         return result;
-      } catch (err: unknown) {
-        this.Metrics.onFailure(stopwatch.getElapsedMilliseconds());
-        throw err;
       } finally {
         timeoutCtrl.abort();
       }
@@ -132,6 +107,4 @@ export class Timeout implements ResilienceDecorator {
   getName() {
     return this.name;
   }
-
-  readonly Metrics: TimeoutMetrics;
 }

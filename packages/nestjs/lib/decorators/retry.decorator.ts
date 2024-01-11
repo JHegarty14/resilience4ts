@@ -1,6 +1,5 @@
 import { Retry as RetryImpl, type RetryConfig as BaseRetryConfig } from '@forts/resilience4ts-all';
 import { TDecoratable } from '@forts/resilience4ts-core';
-import { RESILIENCE_CONSUMER, RESILIENCE_METRICS } from '../constants';
 import { MethodDecorator } from '../types';
 
 type InlineRetry = BaseRetryConfig;
@@ -42,18 +41,9 @@ export function Retry(timesOrOptions: number | RetryConfig): MethodDecorator {
     const originalMethod = descriptor.value;
     const retry = RetryImpl.of(propertyKey, options);
 
-    if (options.scheduleRetry && 'retryIn' in options) {
-      descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-        return retry.onBound(originalMethod, this, options.retryIn)(...args);
-      } as T;
-      Reflect.defineMetadata(RESILIENCE_CONSUMER, descriptor.value.name, descriptor.value);
-    } else {
-      descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-        return retry.onBound(originalMethod, this)(...args);
-      } as T;
-    }
-
-    Reflect.defineMetadata(RESILIENCE_METRICS, retry, descriptor.value);
+    descriptor.value = function (this: unknown, ...args: Parameters<T>) {
+      return retry.onBound(originalMethod, this)(...args);
+    } as T;
 
     return descriptor;
   };

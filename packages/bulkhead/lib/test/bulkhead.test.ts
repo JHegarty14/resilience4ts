@@ -1,28 +1,20 @@
-import { ResilienceProviderService, Stopwatch } from '@forts/resilience4ts-core';
+import { ResilienceProviderService } from '@forts/resilience4ts-core';
 import { Bulkhead } from '../bulkhead';
 
-import { RedisMemoryServer } from 'redis-memory-server';
 import { setTimeout } from 'timers/promises';
 import crypto from 'node:crypto';
-import { Result } from 'oxide.ts/dist';
-import { BulkheadException } from '../types';
 
-jest.setTimeout(60000);
+jest.setTimeout(10000);
 
 let svc: ResilienceProviderService;
 let bulkhead: Bulkhead;
-let redisServer: RedisMemoryServer;
 let redisHost: string;
 let redisPort: number;
 
 describe('Bulkhead', () => {
   beforeAll(async () => {
-    redisServer = new RedisMemoryServer();
-    redisHost = await redisServer.getHost();
-    redisPort = await redisServer.getPort();
-  });
-
-  it('should initialize bulkhead', async () => {
+    redisHost = '127.0.0.1';
+    redisPort = 6379;
     svc = ResilienceProviderService.forRoot({
       resilience: {
         serviceName: 'r4t-test',
@@ -34,17 +26,11 @@ describe('Bulkhead', () => {
         redisUser: '',
         redisPrefix: 'r4t-test',
       },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: false,
-      },
-      bulkhead: {
-        name: 'test',
-        getUniqueId: () => 'bulkhead_uid',
-      },
-    } as any);
+    });
     await svc.start();
+  });
+
+  it('should initialize bulkhead', async () => {
     const listener = jest.fn();
     svc.emitter.addListener('r4t-bulkhead-ready', listener);
 
@@ -65,25 +51,6 @@ describe('Bulkhead', () => {
   });
 
   it('should not allow more than the default max concurrent requests (10)', async () => {
-    svc = ResilienceProviderService.forRoot({
-      resilience: {
-        serviceName: 'r4t-test',
-      },
-      redis: {
-        redisHost,
-        redisPort,
-        redisPassword: '',
-        redisUser: '',
-        redisPrefix: 'r4t-test',
-      },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: false,
-      },
-    });
-    await svc.start();
-
     const decorated = jest.fn().mockImplementation(async () => {
       await setTimeout(3000);
       return 'OK';
@@ -137,11 +104,6 @@ describe('Bulkhead', () => {
         redisUser: '',
         redisPrefix: 'r4t-test',
       },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: false,
-      },
     });
     await svc.start();
 
@@ -188,28 +150,6 @@ describe('Bulkhead', () => {
   });
 
   it('should create Bulkhead from defaults', async () => {
-    svc = ResilienceProviderService.forRoot({
-      resilience: {
-        serviceName: 'r4t-test',
-      },
-      redis: {
-        redisHost,
-        redisPort,
-        redisPassword: '',
-        redisUser: '',
-        redisPrefix: 'r4t-test',
-      },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: false,
-      },
-      bulkhead: {
-        name: 'test',
-        getUniqueId: () => 'bulkhead_uid',
-      },
-    } as any);
-    await svc.start();
     const listener = jest.fn();
     svc.emitter.addListener('r4t-bulkhead-ready', listener);
 
