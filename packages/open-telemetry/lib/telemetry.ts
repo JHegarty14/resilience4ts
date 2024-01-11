@@ -47,7 +47,7 @@ export class OpenTelemetryProvider extends AbstractTelemetryProvider {
       new Resource({
         [SemanticResourceAttributes.SERVICE_NAME]: config.resilience.serviceName,
         [SemanticResourceAttributes.SERVICE_VERSION]: config.resilience.serviceVersion,
-      })
+      }),
     );
 
     const metricReader = new PeriodicExportingMetricReader({

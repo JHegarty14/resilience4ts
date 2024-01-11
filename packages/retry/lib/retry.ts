@@ -34,7 +34,7 @@ export class Retry implements ResilienceDecorator {
   private constructor(
     private readonly name: string,
     private readonly config: RetryConfigImpl,
-    private readonly tags: Map<string, string> // TODO: will be used for metrics
+    private readonly tags: Map<string, string>, // TODO: will be used for metrics
   ) {
     Retry.core = ResilienceProviderService.forRoot();
     this.Metrics = new RetryMetricsImpl(Retry.core.config.metrics?.captureInterval);
@@ -59,27 +59,27 @@ export class Retry implements ResilienceDecorator {
    */
   on<Args, Return, Opts extends RetryExecutionOptions>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    options?: Opts
+    options?: Opts,
   ): (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>;
   on<Args, Return, Opts extends RetryExecutionOptions>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     fromNow: number,
-    options?: Opts
+    options?: Opts,
   ): (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>;
   on<Args, Return, Opts extends RetryExecutionOptions>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     when: string | Date,
-    options?: Opts
+    options?: Opts,
   ): (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>;
   on<Args, Return, Opts extends RetryExecutionOptions, I extends string | Date | number>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     whenOrFromNow: I,
-    options?: Opts
+    options?: Opts,
   ): (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>;
   on<Args, Return, Opts extends RetryExecutionOptions>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     whenOrFromNow?: string | Date | number | Opts,
-    options?: Opts
+    options?: Opts,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
@@ -104,31 +104,31 @@ export class Retry implements ResilienceDecorator {
   onBound<Args, Return, Opts extends RetryExecutionOptions>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     self: unknown,
-    options?: Opts
+    options?: Opts,
   ): (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>;
   onBound<Args, Return, Opts extends RetryExecutionOptions>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     self: unknown,
     fromNow: number,
-    options?: Opts
+    options?: Opts,
   ): (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>;
   onBound<Args, Return, Opts extends RetryExecutionOptions>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     self: unknown,
     when: string | Date,
-    options?: Opts
+    options?: Opts,
   ): (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>;
   onBound<Args, Return, Opts extends RetryExecutionOptions, I extends string | Date | number>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     self: unknown,
     whenOrFromNow: I,
-    options?: Opts
+    options?: Opts,
   ): (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>;
   onBound<Args, Return, Opts extends RetryExecutionOptions>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     self: unknown,
     whenOrFromNow?: string | Date | number | Opts,
-    options?: Opts
+    options?: Opts,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
@@ -149,7 +149,7 @@ export class Retry implements ResilienceDecorator {
   private async retryInner<Args, Return, Opts extends RetryExecutionOptions>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     args: Args extends unknown[] ? Args : [Args],
-    options?: Opts
+    options?: Opts,
   ): Promise<Return> {
     let retryEvent = new RetryEventImpl({ name: this.name, data: args });
     const { backoff, validationMode } = options ?? defaultRetryExecutionOptions;
@@ -193,7 +193,7 @@ export class Retry implements ResilienceDecorator {
         backoff ?? RetryBackoff.Linear,
         retryEvent.unwrap().attempts,
         this.config.maxAttempts,
-        wait
+        wait,
       );
     }
 
@@ -205,7 +205,7 @@ export class Retry implements ResilienceDecorator {
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     self: unknown,
     args: Args extends unknown[] ? Args : [Args],
-    options?: Opts
+    options?: Opts,
   ): Promise<Return> {
     let retryEvent = new RetryEventImpl({ name: this.name, data: args });
     const { backoff, validationMode } = options ?? defaultRetryExecutionOptions;
@@ -249,7 +249,7 @@ export class Retry implements ResilienceDecorator {
         backoff ?? RetryBackoff.Linear,
         retryEvent.unwrap().attempts,
         this.config.maxAttempts,
-        wait
+        wait,
       );
     }
 
@@ -261,30 +261,30 @@ export class Retry implements ResilienceDecorator {
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     args: Args extends unknown[] ? Args : [Args],
     fromNow: number,
-    options?: Opts
+    options?: Opts,
   ): Promise<Return>;
   private async scheduleRetryInner<Args, Return, Opts extends RetryExecutionOptions>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     args: Args extends unknown[] ? Args : [Args],
     when: string | Date,
-    options?: Opts
+    options?: Opts,
   ): Promise<Return>;
   private async scheduleRetryInner<
     Args,
     Return,
     Opts extends RetryExecutionOptions,
-    I extends string | Date | number
+    I extends string | Date | number,
   >(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     args: Args extends unknown[] ? Args : [Args],
     whenOrFromNow: I,
-    options?: Opts
+    options?: Opts,
   ): Promise<Return>;
   private async scheduleRetryInner<Args, Return, Opts extends RetryExecutionOptions>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     args: Args extends unknown[] ? Args : [Args],
     whenOrFromNow: string | Date | number,
-    options?: Opts
+    options?: Opts,
   ): Promise<Return | void> {
     let retryEvent = new RetryEventImpl({ name: this.name, data: args });
     const existing = await Retry.core.cache.hGetAll(retryEvent.taskUid);
@@ -343,33 +343,33 @@ export class Retry implements ResilienceDecorator {
     self: unknown,
     args: Args extends unknown[] ? Args : [Args],
     fromNow: number,
-    options?: Opts
+    options?: Opts,
   ): Promise<Return>;
   private async scheduleRetryInnerBound<Args, Return, Opts extends RetryExecutionOptions>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     self: unknown,
     args: Args extends unknown[] ? Args : [Args],
     when: string | Date,
-    options?: Opts
+    options?: Opts,
   ): Promise<Return>;
   private async scheduleRetryInnerBound<
     Args,
     Return,
     Opts extends RetryExecutionOptions,
-    I extends string | Date | number
+    I extends string | Date | number,
   >(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     self: unknown,
     args: Args extends unknown[] ? Args : [Args],
     whenOrFromNow: I,
-    options?: Opts
+    options?: Opts,
   ): Promise<Return>;
   private async scheduleRetryInnerBound<Args, Return, Opts extends RetryExecutionOptions>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     self: unknown,
     args: Args extends unknown[] ? Args : [Args],
     whenOrFromNow: string | Date | number,
-    options?: Opts
+    options?: Opts,
   ): Promise<Return | void> {
     let retryEvent = new RetryEventImpl({ name: this.name, data: args });
     const existing = await Retry.core.cache.hGetAll(retryEvent.taskUid);
@@ -425,19 +425,19 @@ export class Retry implements ResilienceDecorator {
 
   private async scheduleRetryEvent<Args>(
     fromNow: number,
-    event: RetryEvent<Args>
+    event: RetryEvent<Args>,
   ): Promise<ScheduledRetry<Args>>;
   private async scheduleRetryEvent<Args>(
     when: string | Date,
-    event: RetryEvent<Args>
+    event: RetryEvent<Args>,
   ): Promise<ScheduledRetry<Args>>;
   private async scheduleRetryEvent<Args, I extends string | Date | number>(
     whenOrFromNow: I,
-    event: RetryEvent<Args>
+    event: RetryEvent<Args>,
   ): Promise<ScheduledRetry<Args>>;
   private async scheduleRetryEvent<Args, I extends string | Date | number>(
     whenOrFromNow: I,
-    event: RetryEvent<Args>
+    event: RetryEvent<Args>,
   ): Promise<ScheduledRetry<Args>> {
     const scheduledRetry = new ScheduledRetry(event.taskUid, event.data, whenOrFromNow);
     try {
@@ -453,7 +453,7 @@ export class Retry implements ResilienceDecorator {
 
   private validateRetryResult<T>(
     raw: unknown,
-    strict: boolean
+    strict: boolean,
   ): Result<T, RetryValidationException> {
     const { validateResult } = this.config;
     if (Result.is(raw)) {
@@ -461,13 +461,13 @@ export class Retry implements ResilienceDecorator {
         return Err(
           new RetryValidationException('r4t-retry: wrapped function returned error', {
             cause: raw.unwrapErr(),
-          })
+          }),
         );
       }
     } else if (Option.is(raw)) {
       if (raw.isNone() && strict) {
         return Err(
-          new RetryValidationException('r4t-retry: strictly wrapped function returned None value')
+          new RetryValidationException('r4t-retry: strictly wrapped function returned None value'),
         );
       }
     }
@@ -475,8 +475,8 @@ export class Retry implements ResilienceDecorator {
       return Err(
         new RetryValidationException(
           'r4t-retry: value returned by wrapped function failed validation',
-          { cause: raw }
-        )
+          { cause: raw },
+        ),
       );
     }
 

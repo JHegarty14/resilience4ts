@@ -34,7 +34,7 @@ export type CircuitEvent = {
 };
 
 // Strings
-export type Incrementable = typeof incrementables[number];
+export type Incrementable = (typeof incrementables)[number];
 
 export function recordToCircuitBucket(record: { [x: string]: string }): CircuitBucket {
   return {

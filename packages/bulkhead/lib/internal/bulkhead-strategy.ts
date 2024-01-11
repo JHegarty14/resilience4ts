@@ -21,7 +21,7 @@ export abstract class BaseBulkheadStrategy {
   protected metrics!: BulkheadMetricsImpl;
   constructor(
     protected readonly cache: RedisClientInstance,
-    protected readonly config: BulkheadConfigImpl
+    protected readonly config: BulkheadConfigImpl,
   ) {}
   abstract tryEnterBulkhead(uniqId: UniqueId): Promise<boolean>;
   abstract releaseBulkhead(uniqId: UniqueId): Promise<void>;
@@ -91,7 +91,7 @@ export abstract class BaseBulkheadStrategy {
     return await this.cache.zCount(
       key,
       now - (this.config.maxWait + this.config.executionTimeout),
-      now
+      now,
     );
   }
 
@@ -115,7 +115,7 @@ export class ThreadPoolBulkheadStrategy extends BaseBulkheadStrategy {
     while (Date.now() < end) {
       const acquired = await super.acquireSemaphore(
         KeyBuilder.bulkheadThreadPoolKey(this.threadPoolUid),
-        uniqId.toString()
+        uniqId.toString(),
       );
 
       if (acquired) {
@@ -129,13 +129,13 @@ export class ThreadPoolBulkheadStrategy extends BaseBulkheadStrategy {
   async releaseBulkhead(uniqId: UniqueId) {
     return await super.releaseSemaphore(
       KeyBuilder.bulkheadThreadPoolKey(this.threadPoolUid),
-      uniqId.toString()
+      uniqId.toString(),
     );
   }
 
   async getAvailablePermits() {
     const claimed = await super.getClaimedCapacity(
-      KeyBuilder.bulkheadThreadPoolKey(this.threadPoolUid)
+      KeyBuilder.bulkheadThreadPoolKey(this.threadPoolUid),
     );
     return this.config.maxConcurrent - claimed;
   }
@@ -154,7 +154,7 @@ export class SemaphoreBulkheadStrategy extends BaseBulkheadStrategy {
     while (Date.now() < end) {
       const acquired = await super.acquireSemaphore(
         KeyBuilder.bulkheadSemaphoreKey(this.config.name),
-        uniqId.toString()
+        uniqId.toString(),
       );
 
       if (acquired) {
@@ -168,13 +168,13 @@ export class SemaphoreBulkheadStrategy extends BaseBulkheadStrategy {
   async releaseBulkhead(uniqId: UniqueId) {
     return await super.releaseSemaphore(
       KeyBuilder.bulkheadSemaphoreKey(this.config.name),
-      uniqId.toString()
+      uniqId.toString(),
     );
   }
 
   async getAvailablePermits() {
     const claimed = await super.getClaimedCapacity(
-      KeyBuilder.bulkheadSemaphoreKey(this.config.name)
+      KeyBuilder.bulkheadSemaphoreKey(this.config.name),
     );
     return this.config.maxConcurrent - claimed;
   }

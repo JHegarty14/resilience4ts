@@ -72,7 +72,7 @@ export class ResilienceModule implements OnModuleInit {
 
     @Inject(Tokens.ResilienceTelemetryProvider)
     private readonly telemetryProvider: AbstractTelemetryProvider,
-    s
+    s,
   ) {}
 
   static forRoot(config?: ResilienceConfig): DynamicModule {
@@ -104,7 +104,7 @@ export class ResilienceModule implements OnModuleInit {
 
   static forRootWithMetrics<T extends AbstractTelemetryProvider>(
     metricsProvider: T,
-    config?: ResilienceConfig
+    config?: ResilienceConfig,
   ): DynamicModule {
     const resolvedConfig: ResilienceConfig = config ?? ConfigLoader.loadConfig('./resilience.toml');
     const configImpl = new ResilienceConfigImpl(resolvedConfig);
@@ -160,16 +160,15 @@ export class ResilienceModule implements OnModuleInit {
       throw new Error(
         `Failed to register consumers: ${rejected
           .map((result) => (result as PromiseRejectedResult).reason)
-          .join(', ')}`
+          .join(', ')}`,
       );
     }
   }
 
   private async discoverResilienceComponents(): Promise<Map<string, any>> {
     const map = new Map();
-    const scanResult = await this.discoveryService.providerMethodsWithMetaAtKey(
-      RESILIENCE_DISCOVERABLE
-    );
+    const scanResult =
+      await this.discoveryService.providerMethodsWithMetaAtKey(RESILIENCE_DISCOVERABLE);
 
     // console.log('SCAN RESULT', scanResult);
 
@@ -182,7 +181,7 @@ export class ResilienceModule implements OnModuleInit {
     for (const result of scanResult) {
       // console.log('RESULT', result);
       const resilienceProvider = providers.find(
-        (provider) => provider.name === result.discoveredMethod.parentClass.name
+        (provider) => provider.name === result.discoveredMethod.parentClass.name,
       );
       console.log('RP', resilienceProvider);
       const blah = Reflect.getMetadata(RESILIENCE_TARGET, result.discoveredMethod.handler);
@@ -193,9 +192,8 @@ export class ResilienceModule implements OnModuleInit {
   }
 
   private async registerConsumers() {
-    const scanResult = await this.discoveryService.providerMethodsWithMetaAtKey(
-      RESILIENCE_CONSUMER
-    );
+    const scanResult =
+      await this.discoveryService.providerMethodsWithMetaAtKey(RESILIENCE_CONSUMER);
 
     // const appConfig = new ApplicationConfig();
     // const container = new NestContainer(appConfig);
@@ -244,10 +242,10 @@ export class ResilienceModule implements OnModuleInit {
     // eslint-disable-next-line @typescript-eslint/ban-types
     wrappers: Map<string | symbol | Function, InstanceWrapper<Controller | Injectable>>,
     server: Server,
-    moduleName: string
+    moduleName: string,
   ) {
     wrappers.forEach((wrapper) =>
-      this.consumerController.registerConsumerHandler(wrapper, server, moduleName)
+      this.consumerController.registerConsumerHandler(wrapper, server, moduleName),
     );
   }
 

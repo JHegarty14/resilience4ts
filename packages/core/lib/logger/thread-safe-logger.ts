@@ -69,7 +69,7 @@ export class ThreadSafeLogger implements ILogger {
   private buildLogObject(
     level: keyof ILogger,
     messageOrInfoObj: string | any | object,
-    meta?: any[]
+    meta?: any[],
   ) {
     const logObj =
       typeof messageOrInfoObj === 'string'

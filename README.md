@@ -117,14 +117,14 @@ const result = await cache.on(async () => {
 import { RequestScopedCache, RequestScopedCacheType } from '@forts/resilience4ts-cache';
 
 const cache = RequestScopedCache.of('my-cache', {
-	extractScope: (...args: Parameters<MyDecoratedMethod>) => Record<string, any>, //Function that returns a "scope" to associate with the cache entry from the decorated function args.
-	extractKey: (...args: Parameters<MyDecoratedMethod>) => UniqueId, // Function that returns a unique id for the call.
-	type: RequestScopedCacheType.Local | RequestScopedCacheType.Distributed, // RequestScopedCacheType.Local uses a WeakMap to store the cache entries and is GC'd once the `extractScope` value falls out of scope, RequestScopedCacheType.Distributed uses a distributed cache.
-	clearOnRequestEnd: boolean, // Distributed only. Whether to clear the cache when the request ends, or persist it for the next request with the same scope.
+  extractScope: (...args: Parameters<MyDecoratedMethod>) => Record<string, any>, //Function that returns a "scope" to associate with the cache entry from the decorated function args.
+  extractKey: (...args: Parameters<MyDecoratedMethod>) => UniqueId, // Function that returns a unique id for the call.
+  type: RequestScopedCacheType.Local | RequestScopedCacheType.Distributed, // RequestScopedCacheType.Local uses a WeakMap to store the cache entries and is GC'd once the `extractScope` value falls out of scope, RequestScopedCacheType.Distributed uses a distributed cache.
+  clearOnRequestEnd: boolean, // Distributed only. Whether to clear the cache when the request ends, or persist it for the next request with the same scope.
 });
 
 const result = await cache.on(async () => {
-	// do something
+  // do something
 });
 ```
 

@@ -4,7 +4,7 @@ import { ConfigFileExtensions, ResilienceConfig } from '../types';
 import { assertUnreachable } from './common';
 
 const validExtensions = new Set(
-  Object.values(ConfigFileExtensions).map((ext) => ext.toLowerCase())
+  Object.values(ConfigFileExtensions).map((ext) => ext.toLowerCase()),
 );
 
 export class ConfigLoader {

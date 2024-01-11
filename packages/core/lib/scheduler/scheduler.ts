@@ -53,7 +53,7 @@ export class Scheduler extends EventEmitter {
     readonly config: ResilienceConfig,
     readonly emitter: EventEmitter,
     resourceUsage?: ResourceUtilizationStrategy,
-    cb?: (error?: Error) => void
+    cb?: (error?: Error) => void,
   ) {
     super();
 
@@ -118,7 +118,7 @@ export class Scheduler extends EventEmitter {
    * @returns array of tasks created
    */
   private async createTasks<Data extends Record<string, any>>(
-    tasks: ResilientTask<Data>[]
+    tasks: ResilientTask<Data>[],
   ): Promise<void> {
     try {
       await Promise.all(tasks.map((name) => this.manager.scheduleTask(name)));
@@ -138,32 +138,32 @@ export class Scheduler extends EventEmitter {
   async schedule<Data extends Record<string, any> = Record<string, any>>(
     when: string | Date,
     names: string[],
-    data: Data
+    data: Data,
   ): Promise<void>;
   async schedule<Data extends Record<string, any> = Record<string, any>>(
     when: string | Date,
     names: string,
-    data: Data
+    data: Data,
   ): Promise<void>;
   async schedule<Data extends Record<string, any> = Record<string, any>>(
     fromNow: number,
     names: string[],
-    data: Data
+    data: Data,
   ): Promise<void>;
   async schedule<Data extends Record<string, any> = Record<string, any>>(
     fromNow: number,
     names: string,
-    data: Data
+    data: Data,
   ): Promise<void>;
   async schedule<
     I extends string | Date | number,
     N extends string | string[],
-    Data extends Record<string, any> = Record<string, any>
+    Data extends Record<string, any> = Record<string, any>,
   >(whenOrFromNow: I, names: N, data: Data): Promise<void>;
   async schedule<Data extends Record<string, any> = Record<string, any>>(
     whenOrFromNow: string | Date | number,
     names: string | string[],
-    data: Data
+    data: Data,
   ): Promise<void | void[]> {
     let _type: 'run_at' | 'run_in' = 'run_at';
     let isoExecutionTime: number;

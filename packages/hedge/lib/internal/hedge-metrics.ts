@@ -9,7 +9,10 @@ import { HedgeConfigImpl } from '../types';
 
 export class HedgeMetrics {
   private readonly metrics: Metrics;
-  constructor(private readonly config: HedgeConfigImpl, windowSize?: number) {
+  constructor(
+    private readonly config: HedgeConfigImpl,
+    windowSize?: number,
+  ) {
     if (windowSize !== undefined) {
       this.metrics = new SlidingTimeWindowMetrics(1000);
     } else {

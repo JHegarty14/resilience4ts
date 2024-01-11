@@ -35,7 +35,7 @@ export class ContextCreator {
     private readonly guardsContextCreator: GuardsContextCreator,
     private readonly guardsConsumer: GuardsConsumer,
     private readonly interceptorsContextCreator: InterceptorsContextCreator,
-    private readonly interceptorsConsumer: InterceptorsConsumer
+    private readonly interceptorsConsumer: InterceptorsConsumer,
   ) {}
 
   create<T extends ParamsMetadata = ParamsMetadata>(
@@ -45,14 +45,14 @@ export class ContextCreator {
     methodName: string,
     contextId: ContextId = {} as ContextId,
     inquirerId?: string,
-    defaultCbMetadata: Record<string, any> = {}
+    defaultCbMetadata: Record<string, any> = {},
   ): (...args: any[]) => Promise<Observable<any>> {
     const contextType: ContextType = 'rpc';
     const { argsLength, paramtypes, getParamsMetadata } = this.getMetadata<T>(
       instance,
       methodName,
       defaultCbMetadata,
-      contextType
+      contextType,
     );
 
     const exceptionHandler = this.exceptionFilterContext.create(
@@ -60,28 +60,28 @@ export class ContextCreator {
       callback,
       moduleKey,
       contextId,
-      inquirerId
+      inquirerId,
     );
     const pipes = this.pipesContextCreator.create(
       instance,
       callback,
       moduleKey,
       contextId,
-      inquirerId
+      inquirerId,
     );
     const guards = this.guardsContextCreator.create(
       instance,
       callback,
       moduleKey,
       contextId,
-      inquirerId
+      inquirerId,
     );
     const interceptors = this.interceptorsContextCreator.create(
       instance,
       callback,
       moduleKey,
       contextId,
-      inquirerId
+      inquirerId,
     );
 
     const paramsMetadata = getParamsMetadata(moduleKey);
@@ -110,14 +110,14 @@ export class ContextCreator {
         instance,
         callback,
         handler(initialArgs, args),
-        contextType
+        contextType,
       ) as Promise<Observable<unknown>>;
     }, exceptionHandler);
   }
 
   reflectCallbackParamtypes(
     instance: Controller,
-    callback: (...args: unknown[]) => unknown
+    callback: (...args: unknown[]) => unknown,
   ): unknown[] {
     return Reflect.getMetadata(PARAMTYPES_METADATA, instance, callback.name);
   }
@@ -126,7 +126,7 @@ export class ContextCreator {
     guards: any[],
     instance: Controller,
     callback: (...args: unknown[]) => unknown,
-    contextType?: TContext
+    contextType?: TContext,
   ): ((...args: any[]) => void) | null {
     const canActivateFn = async (args: any[]) => {
       const canActivate = await this.guardsConsumer.tryActivate<TContext>(
@@ -134,7 +134,7 @@ export class ContextCreator {
         args,
         instance,
         callback,
-        contextType
+        contextType,
       );
       if (!canActivate) {
         throw new Error(FORBIDDEN_MESSAGE);
@@ -147,7 +147,7 @@ export class ContextCreator {
     instance: Controller | Provider,
     methodName: string,
     defaultCbMetadata: Record<string, any>,
-    contextType: TContext
+    contextType: TContext,
   ) {
     const cacheMetadata = this.handlerMetadataStorage.get(instance, methodName);
     if (cacheMetadata) {
@@ -158,7 +158,7 @@ export class ContextCreator {
       this.contextUtils.reflectCallbackMetadata<TMetadata>(
         instance,
         methodName,
-        'PARAM_ARGS_METADATA'
+        'PARAM_ARGS_METADATA',
       ) || defaultCbMetadata;
 
     const keys = Object.keys(metadata);
@@ -167,7 +167,7 @@ export class ContextCreator {
     const contextFactory = this.contextUtils.getContextFactory(
       contextType,
       instance,
-      instance[methodName]
+      instance[methodName],
     );
     const getParamsMetadata = () =>
       this.exchangeKeysForValues(keys, metadata, this.paramsFactory, contextFactory);
@@ -184,7 +184,7 @@ export class ContextCreator {
     keys: string[],
     metadata: TMetadata,
     paramsFactory: RpcParamsFactory,
-    contextFactory: (args: unknown[]) => ExecutionContextHost
+    contextFactory: (args: unknown[]) => ExecutionContextHost,
   ): ParamProperties[] {
     return keys.map((key) => {
       const { index, data, pipes } = metadata[key];
@@ -195,7 +195,7 @@ export class ContextCreator {
         const customExtractValue = this.contextUtils.getCustomFactory(
           factory,
           data,
-          contextFactory
+          contextFactory,
         );
         return { index, extractValue: customExtractValue, type, data, pipes };
       }
@@ -209,7 +209,7 @@ export class ContextCreator {
 
   createPipesFn(
     pipes: PipeTransform[],
-    paramsOptions: (ParamProperties & { metatype?: unknown })[]
+    paramsOptions: (ParamProperties & { metatype?: unknown })[],
   ) {
     const pipesFn = async (args: unknown[], ...params: unknown[]) => {
       const resolveParamValue = async (param: ParamProperties & { metatype?: unknown }) => {
@@ -219,7 +219,7 @@ export class ContextCreator {
         args[index] = await this.getParamValue(
           value,
           { metatype, type, data },
-          pipes.concat(paramPipes)
+          pipes.concat(paramPipes),
         );
       };
       await Promise.all(paramsOptions.map(resolveParamValue));
@@ -230,7 +230,7 @@ export class ContextCreator {
   public async getParamValue<T>(
     value: T,
     { metatype, type, data }: { metatype: any; type: any; data: any },
-    pipes: PipeTransform[]
+    pipes: PipeTransform[],
   ): Promise<any> {
     return isEmpty(pipes)
       ? value

@@ -138,7 +138,7 @@ export class InMemoryMetricsBucket {
 
   record(
     keysToIncrement: AtomicValueKey[],
-    valuesForKeys?: Partial<Record<AtomicValueKey, number>>
+    valuesForKeys?: Partial<Record<AtomicValueKey, number>>,
   ): void {
     for (const key of keysToIncrement) {
       this.compareAndSwap(key);

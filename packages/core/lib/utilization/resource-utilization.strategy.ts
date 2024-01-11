@@ -56,7 +56,7 @@ export class ResourceUtilizationStrategy {
       this.maxUtilization,
       this.maxCpuUtilization,
       this.maxSafeUtilization,
-      this.maxSafeCpuUtilization
+      this.maxSafeCpuUtilization,
     );
   }
 
@@ -100,7 +100,7 @@ class ResourceUtilizationCollection {
     readonly maxUtilization: number,
     readonly maxCpuUtilization: number,
     readonly maxSafeUtilization: number,
-    readonly maxSafeCpuUtilization: number
+    readonly maxSafeCpuUtilization: number,
   ) {}
 
   shouldPause() {

@@ -24,7 +24,7 @@ export class Hedge implements ResilienceDecorator {
   private constructor(
     private readonly name: string,
     private readonly config: HedgeConfigImpl,
-    private readonly tags: Map<string, string>
+    private readonly tags: Map<string, string>,
   ) {
     this.hedgeExecutor = HedgeExecutor.new().corePoolSize(config.maxHedgedAttempts).build();
     Hedge.core = ResilienceProviderService.forRoot();
@@ -105,7 +105,7 @@ export class Hedge implements ResilienceDecorator {
    */
   onBound<Args, Return>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown
+    self: unknown,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
@@ -119,7 +119,7 @@ export class Hedge implements ResilienceDecorator {
           ? actionGenerator.call<unknown, any[], Promise<Return>>(self, ...args)
           : fn.call<unknown, Args extends unknown[] ? Args : [Args], Promise<Return>>(
               self,
-              ...args
+              ...args,
             );
 
       const sf = this.hedgeExecutor.schedule<Return>(hedged, this.config.delay, controller);
@@ -162,7 +162,7 @@ export class Hedge implements ResilienceDecorator {
   }
 
   onHedging(
-    listener: (event: { name: string; cacheKey: string }, tags: Map<string, string>) => void
+    listener: (event: { name: string; cacheKey: string }, tags: Map<string, string>) => void,
   ) {
     Hedge.core.emitter.on(KeyBuilder.hedgeKey(this.name), listener);
   }

@@ -98,7 +98,7 @@ describe('ConcurrentQueue', () => {
     ]);
 
     const resolved = result.filter(
-      (r) => r.status === 'fulfilled'
+      (r) => r.status === 'fulfilled',
     ) as PromiseFulfilledResult<string>[];
 
     const rejected = result.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];

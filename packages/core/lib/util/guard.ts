@@ -17,7 +17,7 @@ export class Guard {
     if (typeof value !== 'number' || value < 1 || !Number.isSafeInteger(value)) {
       throw new InvalidArgumentException(
         `Parameter ${name} must be a positive, safe integer. Got ${value}`,
-        name
+        name,
       );
     }
   }
@@ -30,7 +30,7 @@ export class Guard {
     ) {
       throw new InvalidArgumentException(
         `Parameter ${name} must be a string with length greater than 1.`,
-        name
+        name,
       );
     }
   }

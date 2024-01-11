@@ -6,7 +6,7 @@ import { ExceptionHandler } from '../exceptions/exception-handler';
 export class RpcProxy {
   public create(
     targetCallback: (...args: unknown[]) => Promise<Observable<any>>,
-    exceptionsHandler: ExceptionHandler
+    exceptionsHandler: ExceptionHandler,
   ): (...args: unknown[]) => Promise<Observable<unknown>> {
     return async (...args: unknown[]) => {
       try {
@@ -23,7 +23,7 @@ export class RpcProxy {
   handleError<T>(
     exceptionsHandler: ExceptionHandler,
     args: unknown[],
-    error: T
+    error: T,
   ): Observable<unknown> {
     const host = new ExecutionContextHost(args);
     host.setType('rpc');

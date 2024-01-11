@@ -21,7 +21,7 @@ export class TaskManager {
     const score = this.getScore(task);
 
     const serialized = Object.fromEntries(
-      Object.entries(data).map(([key, value]) => [key, JSON.stringify(value)])
+      Object.entries(data).map(([key, value]) => [key, JSON.stringify(value)]),
     );
 
     await this.cache
@@ -35,7 +35,7 @@ export class TaskManager {
     const { taskUid, ...data } = task;
 
     const serialized = Object.fromEntries(
-      Object.entries(data).map(([key, value]) => [key, JSON.stringify(value)])
+      Object.entries(data).map(([key, value]) => [key, JSON.stringify(value)]),
     );
 
     await this.cache
@@ -50,7 +50,7 @@ export class TaskManager {
       getTaskQueueName(),
       getProcessingQueueName(),
       'RIGHT',
-      'LEFT'
+      'LEFT',
     );
 
     if (!nextTaskUid) {
@@ -59,7 +59,7 @@ export class TaskManager {
 
     const task = await this.cache.hGetAll(getTaskKey(nextTaskUid));
     const deserialized = Object.fromEntries(
-      Object.entries(task).map(([key, value]) => [key, JSON.parse(value)])
+      Object.entries(task).map(([key, value]) => [key, JSON.parse(value)]),
     );
     return deserialized as unknown as ResilientTask | null;
   }

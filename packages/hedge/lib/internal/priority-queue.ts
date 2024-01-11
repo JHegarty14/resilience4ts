@@ -117,7 +117,7 @@ export class PriorityQueue {
       (err: unknown) => {
         this.finished = true;
         this.deferred.reject?.(err);
-      }
+      },
     );
   }
 }

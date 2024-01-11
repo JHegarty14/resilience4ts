@@ -29,13 +29,13 @@ export class ConsumerController {
     private readonly contextCreator: ContextCreator,
     private readonly injector: Injector,
     private readonly exceptionFiltersContext: ExceptionFiltersContext,
-    private readonly graphInspector: GraphInspector
+    private readonly graphInspector: GraphInspector,
   ) {}
 
   registerConsumerHandler(
     instanceWrapper: InstanceWrapper<Controller | Injectable>,
     server: Server,
-    moduleKey: string
+    moduleKey: string,
   ) {
     const prototype = Object.getPrototypeOf(instanceWrapper);
     const isStatic = instanceWrapper.isDependencyTreeStatic();
@@ -81,7 +81,7 @@ export class ConsumerController {
             methodKey,
             STATIC_CONTEXT,
             undefined,
-            defaultCallMetadata
+            defaultCallMetadata,
           );
           const eventHandler = async (...args: unknown[]) => {
             const originalArgs = args;
@@ -100,7 +100,7 @@ export class ConsumerController {
             moduleRef,
             moduleKey,
             methodKey,
-            defaultCallMetadata
+            defaultCallMetadata,
           );
           server.addHandler(pattern, asyncHandler);
         }
@@ -113,7 +113,7 @@ export class ConsumerController {
     moduleRef: Module,
     moduleKey: string,
     methodKey: string,
-    defaultCallMetadata: Record<string, any> = {}
+    defaultCallMetadata: Record<string, any> = {},
   ) {
     const collection = moduleRef.controllers;
     const { instance } = wrapper;
@@ -138,7 +138,7 @@ export class ConsumerController {
           instance,
           moduleRef,
           collection,
-          contextId
+          contextId,
         );
         const proxy = this.contextCreator.create(
           contextInstance,
@@ -147,7 +147,7 @@ export class ConsumerController {
           methodKey,
           contextId,
           wrapper.id,
-          defaultCallMetadata
+          defaultCallMetadata,
         );
 
         return proxy(...args);
@@ -157,7 +157,7 @@ export class ConsumerController {
           exceptionFilter = this.exceptionFiltersContext.create(
             instance,
             instance[methodKey],
-            moduleKey
+            moduleKey,
           );
           this.exceptionFiltersCache.set(instance[methodKey], exceptionFilter);
         }
@@ -171,7 +171,7 @@ export class ConsumerController {
 
   private getContextId<T extends Record<string, any>>(
     request: T,
-    isTreeDurable: boolean
+    isTreeDurable: boolean,
   ): ContextId {
     const contextId = ContextIdFactory.getByRequest(request);
     if (!request[REQUEST_CONTEXT_ID as any]) {
@@ -190,7 +190,7 @@ export class ConsumerController {
 
   transformToObservable<T>(resultOrDeferred: Observable<T> | Promise<T>): Observable<T>;
   transformToObservable<T>(
-    resultOrDeferred: T
+    resultOrDeferred: T,
   ): never extends Observable<ObservedValueOf<T>> ? Observable<T> : Observable<ObservedValueOf<T>>;
   transformToObservable(resultOrDeferred: any) {
     if (resultOrDeferred instanceof Promise) {
@@ -207,7 +207,7 @@ export class ConsumerController {
   forkJoinHandlersIfAttached(
     currentReturnValue: Promise<unknown> | Observable<unknown>,
     originalArgs: unknown[],
-    handlerRef: any
+    handlerRef: any,
   ) {
     if (handlerRef.next) {
       const returnedValueWrapper = handlerRef.next(...(originalArgs as Parameters<any>));
@@ -232,7 +232,7 @@ export class ConsumerController {
           isEventHandler: true,
         },
       },
-      instanceWrapper.id
+      instanceWrapper.id,
     );
   }
 }

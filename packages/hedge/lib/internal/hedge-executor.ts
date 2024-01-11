@@ -17,12 +17,12 @@ export class HedgeExecutor {
   schedule<T>(
     scheduledFuture: () => Promise<T>,
     delay: number,
-    primaryAc: AbortController
+    primaryAc: AbortController,
   ): Promise<HedgedResult<T>> {
     return setTimeout(delay, undefined, { signal: this.ac.signal }).then(async () => {
       primaryAc.abort();
       const contenders = Array.from({ length: this.config.poolSize ?? 1 }).map(() =>
-        scheduledFuture()
+        scheduledFuture(),
       );
       try {
         const winner = await SafePromise.race(contenders);

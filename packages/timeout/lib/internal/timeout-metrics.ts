@@ -9,7 +9,10 @@ import { TimeoutConfig } from '../types';
 
 export class TimeoutMetrics {
   private readonly metrics: Metrics;
-  constructor(private readonly config: TimeoutConfig, windowSize?: number) {
+  constructor(
+    private readonly config: TimeoutConfig,
+    windowSize?: number,
+  ) {
     if (windowSize !== undefined) {
       this.metrics = new SlidingTimeWindowMetrics(config.timeout);
     } else {

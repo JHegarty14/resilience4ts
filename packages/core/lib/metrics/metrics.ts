@@ -5,7 +5,7 @@ import { SnapshotImpl } from './snapshot';
 export abstract class Metrics {
   abstract record(
     keysToUpdate: AtomicValueKey[],
-    valuesForKeys?: Partial<Record<AtomicValueKey, number>>
+    valuesForKeys?: Partial<Record<AtomicValueKey, number>>,
   ): void;
 
   abstract getSnapshot(): SnapshotImpl;

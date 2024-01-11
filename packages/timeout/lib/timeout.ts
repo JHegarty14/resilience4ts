@@ -19,14 +19,17 @@ import type { TimeoutConfig, TimeoutOptions } from './types';
  * decorator will reject the request with a {@link TimeoutExceededException}.
  */
 export class Timeout implements ResilienceDecorator {
-  private constructor(private readonly name: string, private readonly config: TimeoutConfig) {
+  private constructor(
+    private readonly name: string,
+    private readonly config: TimeoutConfig,
+  ) {
     if (config.timeout < 0) {
       throw new InvalidArgumentException('config.timeout must be greater than 0');
     }
 
     this.Metrics = new TimeoutMetrics(
       this.config,
-      ResilienceProviderService.instance?.config?.metrics?.captureInterval
+      ResilienceProviderService.instance?.config?.metrics?.captureInterval,
     );
   }
 
@@ -39,7 +42,7 @@ export class Timeout implements ResilienceDecorator {
    */
   on<Args, Return>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    options?: TimeoutOptions<Args extends unknown[] ? Args : [Args]>
+    options?: TimeoutOptions<Args extends unknown[] ? Args : [Args]>,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       const { signal } = options ?? {};
@@ -81,7 +84,7 @@ export class Timeout implements ResilienceDecorator {
   onBound<Args, Return>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
     self: unknown,
-    options?: TimeoutOptions<Args extends unknown[] ? Args : [Args]>
+    options?: TimeoutOptions<Args extends unknown[] ? Args : [Args]>,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       const { signal } = options ?? {};
@@ -119,7 +122,7 @@ export class Timeout implements ResilienceDecorator {
   private async timeout(
     delay: number,
     timeoutController: AbortController,
-    taskController: AbortController
+    taskController: AbortController,
   ) {
     await setTimeout(delay, undefined, { signal: timeoutController.signal });
     taskController.abort();

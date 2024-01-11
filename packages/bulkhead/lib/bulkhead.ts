@@ -26,7 +26,7 @@ export class Bulkhead implements ResilienceDecorator {
   private constructor(
     private readonly name: string,
     private readonly config: BulkheadConfigImpl,
-    private readonly tags: Map<string, string>
+    private readonly tags: Map<string, string>,
   ) {
     Bulkhead.core = ResilienceProviderService.forRoot();
     this.Metrics = new BulkheadMetricsImpl(config, Bulkhead.core.config.metrics?.captureInterval);
@@ -51,14 +51,14 @@ export class Bulkhead implements ResilienceDecorator {
     await Bulkhead.core.start();
     const registered = await Bulkhead.core.cache.sIsMember(
       KeyBuilder.bulkheadRegistryKey(),
-      this.name
+      this.name,
     );
     if (!registered) {
       await Bulkhead.core.cache.sAdd(KeyBuilder.bulkheadRegistryKey(), [this.name]);
     }
 
     this.strategy = BulkheadStrategyFactory.resolve(Bulkhead.core.cache, this.config).withMetrics(
-      this.Metrics
+      this.Metrics,
     );
 
     Bulkhead.core.emitter.emit('r4t-bulkhead-ready', this.name, this.tags);
@@ -98,7 +98,7 @@ export class Bulkhead implements ResilienceDecorator {
    */
   onBound<Args, Return>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown
+    self: unknown,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;

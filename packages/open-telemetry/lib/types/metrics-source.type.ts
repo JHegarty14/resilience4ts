@@ -27,13 +27,13 @@ export type ResiliencePrefix =
 export type MetricsImpl<K extends ResiliencePrefix> = K extends 'bulkhead'
   ? Bulkhead
   : K extends 'circuit-breaker'
-  ? CircuitBreaker
-  : K extends 'hedge'
-  ? Hedge
-  : K extends 'rate-limiter'
-  ? RateLimiter
-  : K extends 'retry'
-  ? RetryMetrics
-  : K extends 'timeout'
-  ? Timeout
-  : never;
+    ? CircuitBreaker
+    : K extends 'hedge'
+      ? Hedge
+      : K extends 'rate-limiter'
+        ? RateLimiter
+        : K extends 'retry'
+          ? RetryMetrics
+          : K extends 'timeout'
+            ? Timeout
+            : never;

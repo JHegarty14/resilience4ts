@@ -20,7 +20,7 @@ export class Fallback<Action extends Json> implements ResilienceDecorator {
   private constructor(
     private readonly name: string,
     private readonly config: FallbackConfigImpl<Action>,
-    private readonly tags: Map<string, string>
+    private readonly tags: Map<string, string>,
   ) {
     Fallback.core = ResilienceProviderService.forRoot();
     this.initialized = this.init();
@@ -72,7 +72,7 @@ export class Fallback<Action extends Json> implements ResilienceDecorator {
    */
   onBound<Args, Return>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown
+    self: unknown,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;

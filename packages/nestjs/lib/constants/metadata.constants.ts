@@ -30,4 +30,4 @@ export const RESILIENCE_COMPONENTS = [
   RESILIENCE_TIMEOUT,
 ] as const;
 
-export type ResilienceComponent = typeof RESILIENCE_COMPONENTS[number];
+export type ResilienceComponent = (typeof RESILIENCE_COMPONENTS)[number];

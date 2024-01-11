@@ -9,7 +9,10 @@ import { Observable } from 'rxjs';
 import { ExceptionHandler } from './exception-handler';
 
 export class ExceptionFiltersContext extends BaseExceptionFilterContext {
-  constructor(container: NestContainer, private readonly config: ApplicationConfig) {
+  constructor(
+    container: NestContainer,
+    private readonly config: ApplicationConfig,
+  ) {
     super(container);
   }
 
@@ -18,7 +21,7 @@ export class ExceptionFiltersContext extends BaseExceptionFilterContext {
     callback: <T = any>(data: T) => Observable<any>,
     module: string,
     contextId = STATIC_CONTEXT,
-    inquirerId?: string
+    inquirerId?: string,
   ): any {
     this.moduleContext = module;
 
@@ -28,7 +31,7 @@ export class ExceptionFiltersContext extends BaseExceptionFilterContext {
       callback,
       EXCEPTION_FILTERS_METADATA,
       contextId,
-      inquirerId
+      inquirerId,
     );
     if (isEmpty(filters)) {
       return exceptionHandler;
@@ -45,7 +48,7 @@ export class ExceptionFiltersContext extends BaseExceptionFilterContext {
     const scopedFilterWrappers = this.config.getGlobalRequestFilters() as InstanceWrapper[];
     const scopedFilters = scopedFilterWrappers
       .map((wrapper) =>
-        wrapper.getInstanceByContextId(this.getContextId(contextId, wrapper), inquirerId)
+        wrapper.getInstanceByContextId(this.getContextId(contextId, wrapper), inquirerId),
       )
       .filter((host) => !!host)
       .map((host) => host.instance);

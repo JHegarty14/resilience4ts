@@ -18,7 +18,7 @@ export class SizedSlidingWindowMetrics implements Metrics {
 
   record(
     keysToIncrement: AtomicValueKey[],
-    valuesForKeys?: Partial<Record<AtomicValueKey, number>>
+    valuesForKeys?: Partial<Record<AtomicValueKey, number>>,
   ): void {
     this.aggregation.record(keysToIncrement, valuesForKeys);
     this.partialAggregation[this.headIdx].record(keysToIncrement, valuesForKeys);

@@ -121,7 +121,7 @@ describe('Retry', () => {
     } catch (e: unknown) {
       expect(e).toBeInstanceOf(FailedWithScheduledRetryException);
       expect((e as FailedWithScheduledRetryException<any>).retryContext).toBeInstanceOf(
-        ScheduledRetry
+        ScheduledRetry,
       );
     }
   });
@@ -162,7 +162,7 @@ describe('Retry', () => {
     } catch (e: unknown) {
       expect(e).toBeInstanceOf(FailedWithScheduledRetryException);
       expect((e as FailedWithScheduledRetryException<any>).retryContext).toBeInstanceOf(
-        ScheduledRetry
+        ScheduledRetry,
       );
     }
 

@@ -15,7 +15,7 @@ export const RateLimiter = (options: RateLimiterConfig) => {
   return <T extends TDecoratable>(
     _: object,
     propertyKey: string,
-    descriptor: TypedPropertyDescriptor<T>
+    descriptor: TypedPropertyDescriptor<T>,
   ) => {
     if (!descriptor.value) {
       return descriptor;

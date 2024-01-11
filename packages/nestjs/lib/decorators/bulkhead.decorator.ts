@@ -19,7 +19,7 @@ export const Bulkhead = (options: BulkheadConfig) => {
   return <T extends TDecoratable>(
     target: object,
     propertyKey: string,
-    descriptor: TypedPropertyDescriptor<T>
+    descriptor: TypedPropertyDescriptor<T>,
   ) => {
     if (!descriptor.value) {
       return descriptor;

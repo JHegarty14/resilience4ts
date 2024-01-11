@@ -1,6 +1,6 @@
 export class RequestScopedCacheLocal<Scope extends Record<string, any>> {
   static readonly instance = new RequestScopedCacheLocal(
-    new WeakMap<Record<string, any>, Map<string, any>>()
+    new WeakMap<Record<string, any>, Map<string, any>>(),
   );
 
   private constructor(private readonly cache: WeakMap<Scope, Map<string, any>>) {}

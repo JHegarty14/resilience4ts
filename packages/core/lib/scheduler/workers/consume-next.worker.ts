@@ -59,8 +59,8 @@ class QueueConsumer extends AbstractResilienceConsumer {
               await setTimeout(
                 Math.max(
                   this.config.scheduler.recoveryInterval,
-                  this.config.scheduler.defaultInterval * noResultCount
-                )
+                  this.config.scheduler.defaultInterval * noResultCount,
+                ),
               );
             } else if (noResultCount >= (this.config.scheduler.consumer?.startBackoffAt ?? 3)) {
               await setTimeout(this.config.scheduler.defaultInterval * noResultCount);

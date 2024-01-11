@@ -33,7 +33,7 @@ export class ResiliencePipe<Args, Return> {
   private static core: ResilienceProviderService;
   private constructor(
     private readonly name: string,
-    private fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>
+    private fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
   ) {
     ResiliencePipe.core = ResilienceProviderService.forRoot();
     this.Metrics = new ResiliencePipeMetrics(DefaultMetricsConfig);
@@ -43,15 +43,15 @@ export class ResiliencePipe<Args, Return> {
    * Creates a new ResiliencePipe decorator.
    */
   static of<Args, Return>(
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>
+    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
   ): ResiliencePipe<Args, Return>;
   static of<Args, Return>(
     name: string,
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>
+    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
   ): ResiliencePipe<Args, Return>;
   static of<Args, Return>(
     nameOrFn: string | ((...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>),
-    fn?: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>
+    fn?: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
   ): ResiliencePipe<Args, Return> {
     if (typeof nameOrFn === 'string' && fn) {
       return new ResiliencePipe<Args, Return>(nameOrFn, fn);
@@ -330,7 +330,7 @@ export class ResiliencePipeBuilder {
    * Apply the pipeline to the given function.
    */
   on<Args, Return>(
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>
+    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
   ): ResiliencePipe<Args, Return> {
     const pipe = ResiliencePipe.of(fn);
     pipe.with(...this.decorators);

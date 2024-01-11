@@ -17,7 +17,7 @@ export class ResilienceProviderService {
     readonly config: ResilienceConfig,
     private readonly _cache: Promise<RedisClientInstance>,
     logger?: BaseLogger,
-    readonly emitter = new EventEmitter()
+    readonly emitter = new EventEmitter(),
   ) {
     ResilienceKeyBuilder.new(config.resilience.serviceName, config.resilience.delimiter);
     this.logger = logger ?? pino();
@@ -30,11 +30,11 @@ export class ResilienceProviderService {
   static forRoot(config: ResilienceConfig, logger: BaseLogger): ResilienceProviderService;
   static forRoot(
     envFileOrConfig: ResilienceConfig | string,
-    logger: BaseLogger
+    logger: BaseLogger,
   ): ResilienceProviderService;
   static forRoot(
     configOrLogger: ResilienceConfig | string | BaseLogger | undefined,
-    logger: BaseLogger = pino()
+    logger: BaseLogger = pino(),
   ): ResilienceProviderService {
     if (ResilienceProviderService.instance) {
       return ResilienceProviderService.instance;
@@ -45,19 +45,19 @@ export class ResilienceProviderService {
       ResilienceProviderService.instance = new ResilienceProviderService(
         config,
         PersistenceFactory(config.redis, logger),
-        logger
+        logger,
       );
     } else if (!configOrLogger || 'info' in configOrLogger) {
       const config: ResilienceConfig = ConfigLoader.loadConfig('./resilience.toml');
       ResilienceProviderService.instance = new ResilienceProviderService(
         config,
-        PersistenceFactory(config.redis, configOrLogger ?? pino())
+        PersistenceFactory(config.redis, configOrLogger ?? pino()),
       );
     } else {
       ResilienceProviderService.instance = new ResilienceProviderService(
         configOrLogger,
         PersistenceFactory(configOrLogger.redis, logger),
-        logger
+        logger,
       );
     }
 

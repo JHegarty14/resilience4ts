@@ -3,7 +3,10 @@ import { BulkheadConfigImpl } from '../types';
 
 export class BulkheadMetricsImpl {
   private readonly metrics: Metrics;
-  constructor(private readonly config: BulkheadConfigImpl, windowSize?: number) {
+  constructor(
+    private readonly config: BulkheadConfigImpl,
+    windowSize?: number,
+  ) {
     if (windowSize !== undefined) {
       this.metrics = new SlidingTimeWindowMetrics(windowSize);
     } else {

@@ -2,7 +2,7 @@ import { MetricsBucketWindow, RetentionWindow } from '../../types';
 
 const VALID = ['ms', 's', 'm', 'h', 'd', 'w'] as const;
 
-type ValidUnit = typeof VALID[number];
+type ValidUnit = (typeof VALID)[number];
 
 const SecondToMs = 1000;
 

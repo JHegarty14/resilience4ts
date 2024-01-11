@@ -22,7 +22,7 @@ export abstract class BaseRateLimiterStrategy {
   protected metrics!: RateLimiterMetrics;
   constructor(
     protected readonly cache: RedisClientInstance,
-    protected readonly config: RateLimiterConfigImpl
+    protected readonly config: RateLimiterConfigImpl,
   ) {}
 
   abstract guard(key: string, requestIdentifier?: string): Promise<boolean>;
@@ -88,7 +88,10 @@ export abstract class BaseRateLimiterStrategy {
 }
 
 export class RateLimiterClientStrategy extends BaseRateLimiterStrategy {
-  constructor(readonly cache: RedisClientInstance, readonly config: RateLimiterConfigImpl) {
+  constructor(
+    readonly cache: RedisClientInstance,
+    readonly config: RateLimiterConfigImpl,
+  ) {
     super(cache, config);
   }
 
@@ -98,7 +101,10 @@ export class RateLimiterClientStrategy extends BaseRateLimiterStrategy {
 }
 
 export class RateLimiterGlobalStrategy extends BaseRateLimiterStrategy {
-  constructor(readonly cache: RedisClientInstance, readonly config: RateLimiterConfigImpl) {
+  constructor(
+    readonly cache: RedisClientInstance,
+    readonly config: RateLimiterConfigImpl,
+  ) {
     super(cache, config);
   }
 

@@ -14,7 +14,7 @@ export class SlidingTimeWindowMetrics implements Metrics {
     let epochSecond = Math.floor(Date.now() / 1000);
     for (let i = 0; i < this.windowSizeInSeconds; i++) {
       this.partialAggregation.push(
-        new InMemoryMetricsBucket(epochSecond, this.windowSizeInSeconds)
+        new InMemoryMetricsBucket(epochSecond, this.windowSizeInSeconds),
       );
       epochSecond++;
     }
@@ -22,16 +22,16 @@ export class SlidingTimeWindowMetrics implements Metrics {
 
   record(
     keysToIncrement: AtomicValueKey[],
-    valuesForKeys?: Partial<Record<AtomicValueKey, number>>
+    valuesForKeys?: Partial<Record<AtomicValueKey, number>>,
   ): void {
     this.moveWindowToCurrentEpocSecond(this.getLatestPartialAggregation()).record(
       keysToIncrement,
-      valuesForKeys
+      valuesForKeys,
     );
   }
 
   moveWindowToCurrentEpocSecond(
-    latestPartialAggregation: InMemoryMetricsBucket
+    latestPartialAggregation: InMemoryMetricsBucket,
   ): InMemoryMetricsBucket {
     const currentEpochSecond = Math.floor(Date.now() / 1000);
     const diffInSeconds = currentEpochSecond - latestPartialAggregation.getInitialTimestamp();

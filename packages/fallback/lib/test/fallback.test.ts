@@ -87,7 +87,7 @@ describe('Fallback', () => {
     fallback = Fallback.of('test', {
       fallbackAction: async () => 'falling back',
       shouldHandle: new PredicateBuilder((value: string) => value === 'ERR').or(
-        OperationCancelledException
+        OperationCancelledException,
       ),
     });
 

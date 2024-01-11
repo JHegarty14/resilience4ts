@@ -42,13 +42,13 @@ export class CircuitBreaker implements ResilienceDecorator {
   private constructor(
     readonly name: string,
     private readonly config: CircuitBreakerConfigImpl,
-    private readonly tags: Map<string, string>
+    private readonly tags: Map<string, string>,
   ) {
     CircuitBreaker.core = ResilienceProviderService.forRoot();
     this.strategy = CircuitBreakerStrategyFactory.resolve(config);
     this.Metrics = new CircuitBreakerMetricsImpl(
       this.config,
-      CircuitBreaker.core.config.metrics?.captureInterval
+      CircuitBreaker.core.config.metrics?.captureInterval,
     );
     this.initialized = this.init();
   }
@@ -60,7 +60,7 @@ export class CircuitBreaker implements ResilienceDecorator {
   static of(
     name: string,
     config: CircuitBreakerConfig,
-    tags?: Map<string, string>
+    tags?: Map<string, string>,
   ): CircuitBreaker {
     return new CircuitBreaker(name, new CircuitBreakerConfigImpl(config), tags || new Map());
   }
@@ -69,7 +69,7 @@ export class CircuitBreaker implements ResilienceDecorator {
     await CircuitBreaker.core.start();
     const registered = await CircuitBreaker.core.cache.zScore(
       KeyBuilder.circuitRegistryKey(),
-      this.name
+      this.name,
     );
 
     if (!registered) {
@@ -127,7 +127,7 @@ export class CircuitBreaker implements ResilienceDecorator {
    */
   onBound<Args, Return>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown
+    self: unknown,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
@@ -179,7 +179,7 @@ export class CircuitBreaker implements ResilienceDecorator {
 
     const isThresholdExceeded = this.strategy.isThresholdExceeded(
       bucketDetails.failure,
-      bucketDetails.success
+      bucketDetails.success,
     );
 
     this.Metrics.onCallFailure(stopwatch.getElapsedMilliseconds());
@@ -286,7 +286,7 @@ export class CircuitBreaker implements ResilienceDecorator {
   private async getCircuitState(): Promise<CircuitBreakerState> {
     return (await CircuitBreaker.core.cache.zScore(
       KeyBuilder.circuitRegistryKey(),
-      this.name
+      this.name,
     )) as CircuitBreakerState;
   }
 
@@ -324,7 +324,7 @@ export class CircuitBreaker implements ResilienceDecorator {
         BY: 'SCORE',
         REV: rev || undefined,
         LIMIT: { offset: 0, count },
-      }
+      },
     );
 
     return buckets ?? [];

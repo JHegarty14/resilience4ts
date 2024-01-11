@@ -122,11 +122,11 @@ export class ResilienceConfigImpl implements ResilienceConfig {
     if (cfg.dataRetentionPolicy) {
       Guard.throwIfExistsAndNotString(
         cfg.dataRetentionPolicy.metricsBucketWindow,
-        'cfg.dataRetentionPolicy.metricsBucketWindow'
+        'cfg.dataRetentionPolicy.metricsBucketWindow',
       );
       Guard.throwIfExistsAndNotString(
         cfg.dataRetentionPolicy.retentionWindow,
-        'cfg.dataRetentionPolicy.retentionWindow'
+        'cfg.dataRetentionPolicy.retentionWindow',
       );
     }
     return cfg;

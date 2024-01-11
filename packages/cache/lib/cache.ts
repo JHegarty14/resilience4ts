@@ -18,7 +18,7 @@ export class Cache implements ResilienceDecorator {
   private constructor(
     private readonly name: string,
     private readonly config: CacheConfigImpl,
-    private readonly tags: Map<string, string>
+    private readonly tags: Map<string, string>,
   ) {
     Cache.core = ResilienceProviderService.forRoot();
     this.init();
@@ -81,7 +81,7 @@ export class Cache implements ResilienceDecorator {
    */
   onBound<Args, Return>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown
+    self: unknown,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       try {
@@ -114,19 +114,19 @@ export class Cache implements ResilienceDecorator {
   }
 
   onCacheHit(
-    listener: (event: { name: string; cacheKey: string }, tags: Map<string, string>) => void
+    listener: (event: { name: string; cacheKey: string }, tags: Map<string, string>) => void,
   ) {
     Cache.core.emitter.on('r4t-cache-hit', listener);
   }
 
   onCacheMiss(
-    listener: (event: { name: string; cacheKey: string }, tags: Map<string, string>) => void
+    listener: (event: { name: string; cacheKey: string }, tags: Map<string, string>) => void,
   ) {
     Cache.core.emitter.on('r4t-cache-miss', listener);
   }
 
   onCacheError(
-    listener: (error: { error: Error; name: string }, tags: Map<string, string>) => void
+    listener: (error: { error: Error; name: string }, tags: Map<string, string>) => void,
   ) {
     Cache.core.emitter.on('r4t-cache-error', listener);
   }
@@ -138,7 +138,7 @@ export class Cache implements ResilienceDecorator {
       return await Cache.core.cache.zCount(
         KeyBuilder.cacheMissesKey(this.parent.name),
         windowStart ?? 0,
-        windowEnd ?? Date.now()
+        windowEnd ?? Date.now(),
       );
     }
 
@@ -146,7 +146,7 @@ export class Cache implements ResilienceDecorator {
       return await Cache.core.cache.zCount(
         KeyBuilder.cacheHitsKey(this.parent.name),
         windowStart ?? 0,
-        windowEnd ?? Date.now()
+        windowEnd ?? Date.now(),
       );
     }
   })(this);

@@ -7,7 +7,7 @@ export class TaskBuilder {
     type: 'run_at' | 'run_in' | 'immediate',
     isoExecutionTime: number,
     names: string,
-    data: Data
+    data: Data,
   ): ResilientTask<Data> {
     switch (type) {
       case 'run_at':
@@ -48,7 +48,7 @@ export class TaskBuilder {
     type: 'run_at' | 'run_in' | 'immediate',
     isoExecutionTime: number,
     names: string[],
-    data: Data
+    data: Data,
   ): ResilientTask<Data>[] {
     return names.map((name) => TaskBuilder.build<Data>(type, isoExecutionTime, name, data));
   }

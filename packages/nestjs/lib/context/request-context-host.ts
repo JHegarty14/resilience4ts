@@ -2,13 +2,13 @@ export class RequestContextHost<TData = any, TContext = any> {
   constructor(
     readonly pattern: string | Record<string, any>,
     readonly data: TData,
-    readonly context: TContext
+    readonly context: TContext,
   ) {}
 
   static create<TData, TContext>(
     pattern: string | Record<string, any>,
     data: TData,
-    context: TContext
+    context: TContext,
   ) {
     return new RequestContextHost(pattern, data, context);
   }

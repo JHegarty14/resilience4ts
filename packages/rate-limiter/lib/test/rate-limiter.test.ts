@@ -152,7 +152,7 @@ describe('RateLimiter', () => {
     expect(rejected).toHaveLength(2);
 
     const globalResults = allowed.filter(
-      (r) => (r as PromiseFulfilledResult<string>).value === 'OK - GLOBAL'
+      (r) => (r as PromiseFulfilledResult<string>).value === 'OK - GLOBAL',
     );
     const reasons = rejected.map((r) => (r as PromiseRejectedResult).reason);
 
