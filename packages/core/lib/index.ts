@@ -2,8 +2,6 @@ export * from './cache';
 export * from './events';
 export * from './exceptions';
 export * from './logger';
-export * from './metrics';
-export * from './scheduler';
 export type {
   Duration,
   Json,

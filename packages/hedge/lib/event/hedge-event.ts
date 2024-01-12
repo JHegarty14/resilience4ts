@@ -4,14 +4,14 @@ export class HedgeEvent implements ResilienceEvent<HedgeEventContext> {
   constructor(
     readonly name: string,
     readonly context: HedgeEventContext,
-    readonly type = 'r4t-HedgeEvent'
+    readonly type = 'r4t-HedgeEvent',
   ) {}
 
   static fromError(
     name: string,
     error: Error | Json,
     duration: number,
-    type: HedgeFailureEvent
+    type: HedgeFailureEvent,
   ): HedgeEvent {
     return new HedgeEvent(name, {
       type,

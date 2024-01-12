@@ -4,11 +4,9 @@ import { CircuitBreaker } from '@forts/resilience4ts-circuit-breaker';
 import { ConcurrentLock } from '@forts/resilience4ts-concurrent-lock';
 import { ConcurrentQueue } from '@forts/resilience4ts-concurrent-queue';
 import {
-  DefaultMetricsConfig,
   InvalidArgumentException,
   ResilienceDecorator,
   ResilienceProviderService,
-  Stopwatch,
 } from '@forts/resilience4ts-core';
 import type { Json } from '@forts/resilience4ts-core';
 import { Fallback } from '@forts/resilience4ts-fallback';
@@ -16,7 +14,6 @@ import { Hedge } from '@forts/resilience4ts-hedge';
 import { RateLimiter } from '@forts/resilience4ts-rate-limiter';
 import { Retry } from '@forts/resilience4ts-retry';
 import { Timeout } from '@forts/resilience4ts-timeout';
-import { ResiliencePipeMetrics } from './internal';
 
 /**
  * ResiliencePipe Decorator
@@ -33,25 +30,24 @@ export class ResiliencePipe<Args, Return> {
   private static core: ResilienceProviderService;
   private constructor(
     private readonly name: string,
-    private fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>
+    private fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
   ) {
     ResiliencePipe.core = ResilienceProviderService.forRoot();
-    this.Metrics = new ResiliencePipeMetrics(DefaultMetricsConfig);
   }
 
   /**
    * Creates a new ResiliencePipe decorator.
    */
   static of<Args, Return>(
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>
+    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
   ): ResiliencePipe<Args, Return>;
   static of<Args, Return>(
     name: string,
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>
+    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
   ): ResiliencePipe<Args, Return>;
   static of<Args, Return>(
     nameOrFn: string | ((...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>),
-    fn?: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>
+    fn?: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
   ): ResiliencePipe<Args, Return> {
     if (typeof nameOrFn === 'string' && fn) {
       return new ResiliencePipe<Args, Return>(nameOrFn, fn);
@@ -171,41 +167,19 @@ export class ResiliencePipe<Args, Return> {
   }
 
   async execute(...args: Args extends unknown[] ? Args : [Args]): Promise<Return> {
-    const stopwatch = Stopwatch.start();
-    try {
-      const result = await this.fn(...args);
-
-      this.Metrics.handlePipelineResult(result, stopwatch.getElapsedMilliseconds());
-
-      return result;
-    } catch (err: unknown) {
-      this.Metrics.onCallFailure(stopwatch.getElapsedMilliseconds());
-      throw err;
-    }
+    return await this.fn(...args);
   }
 
   async executeBound(
     self: unknown,
     ...args: Args extends unknown[] ? Args : [Args]
   ): Promise<Return> {
-    const stopwatch = Stopwatch.start();
-    try {
-      const result = await this.fn.call(self, ...args);
-
-      this.Metrics.handlePipelineResult(result, stopwatch.getElapsedMilliseconds());
-
-      return result;
-    } catch (err: unknown) {
-      this.Metrics.onCallFailure(stopwatch.getElapsedMilliseconds());
-      throw err;
-    }
+    return await this.fn.call(self, ...args);
   }
 
   getName() {
     return this.name;
   }
-
-  readonly Metrics: ResiliencePipeMetrics;
 }
 
 /**
@@ -330,7 +304,7 @@ export class ResiliencePipeBuilder {
    * Apply the pipeline to the given function.
    */
   on<Args, Return>(
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>
+    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
   ): ResiliencePipe<Args, Return> {
     const pipe = ResiliencePipe.of(fn);
     pipe.with(...this.decorators);

@@ -1,6 +1,5 @@
 import { Hedge as HedgeImpl, type HedgeConfig } from '@forts/resilience4ts-all';
 import { TDecoratable } from '@forts/resilience4ts-core';
-import { RESILIENCE_METRICS } from '../constants';
 
 /**
  * Hedge Decorator
@@ -18,7 +17,7 @@ export const Hedge = (options: HedgeConfig) => {
   return <T extends TDecoratable>(
     _: object,
     propertyKey: string,
-    descriptor: TypedPropertyDescriptor<T>
+    descriptor: TypedPropertyDescriptor<T>,
   ) => {
     if (!descriptor.value) {
       return descriptor;
@@ -29,8 +28,6 @@ export const Hedge = (options: HedgeConfig) => {
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
       return hedge.onBound(originalMethod, this)(...args);
     } as T;
-
-    Reflect.defineMetadata(RESILIENCE_METRICS, hedge, descriptor.value);
 
     return descriptor;
   };

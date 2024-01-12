@@ -53,10 +53,10 @@ export const fromThrowable = <
   Args,
   ErrReturn extends Error | Json,
   E extends Error,
-  Fn extends (...args: Args extends unknown[] ? Args : [Args]) => any
+  Fn extends (...args: Args extends unknown[] ? Args : [Args]) => any,
 >(
   fn: Fn,
-  errorFn?: (e: E) => ErrReturn
+  errorFn?: (e: E) => ErrReturn,
 ): ((...args: Args extends unknown[] ? Args : [Args]) => Result<ReturnType<Fn>, ErrReturn>) => {
   return (...args) => {
     try {
@@ -87,10 +87,10 @@ export const fromAsyncThrowable = <
   Args,
   ErrReturn extends Error | Json,
   E extends Error,
-  Fn extends (...args: Args extends unknown[] ? Args : [Args]) => Promise<any>
+  Fn extends (...args: Args extends unknown[] ? Args : [Args]) => Promise<any>,
 >(
   fn: Fn,
-  errorFn?: (e: E) => ErrReturn
+  errorFn?: (e: E) => ErrReturn,
 ): ((
   ...args: Args extends unknown[] ? Args : [Args]
 ) => Promise<Result<AsyncReturnType<Fn>, ErrReturn>>) => {

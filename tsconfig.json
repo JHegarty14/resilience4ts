@@ -16,7 +16,7 @@
       "@forts/resilience4ts-metrics": ["./packages/metrics"],
       "@forts/resilience4ts-nestjs": ["./packages/nestjs"],
       "@forts/resilience4ts-retry": ["./packages/retry"],
-      "@forts/resilience4ts-timeout": ["./packages/timeout"],
+      "@forts/resilience4ts-timeout": ["./packages/timeout"]
     },
     "noEmit": true
   },

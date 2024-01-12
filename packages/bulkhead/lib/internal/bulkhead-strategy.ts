@@ -1,6 +1,5 @@
 import { RedisClientInstance, type UniqueId } from '@forts/resilience4ts-core';
 import { BulkheadConfigImpl, BulkheadStrategy } from '../types';
-import { BulkheadMetricsImpl } from './bulkhead-metrics';
 import { KeyBuilder } from './key-builder';
 
 export class BulkheadStrategyFactory {
@@ -18,10 +17,9 @@ export class BulkheadStrategyFactory {
 
 export abstract class BaseBulkheadStrategy {
   protected stopping = false;
-  protected metrics!: BulkheadMetricsImpl;
   constructor(
     protected readonly cache: RedisClientInstance,
-    protected readonly config: BulkheadConfigImpl
+    protected readonly config: BulkheadConfigImpl,
   ) {}
   abstract tryEnterBulkhead(uniqId: UniqueId): Promise<boolean>;
   abstract releaseBulkhead(uniqId: UniqueId): Promise<void>;
@@ -53,18 +51,7 @@ export abstract class BaseBulkheadStrategy {
       pipeline.zRank(czSet, uniqId);
       const pipelineRes = await pipeline.execAsPipeline();
       const rank = pipelineRes[pipelineRes.length - 1]?.toString();
-      const permitsClaimed = pipelineRes[pipelineRes.length - 2]?.toString();
-
       const rankInt = rank ? parseInt(rank) : undefined;
-      const permitsClaimedInt = permitsClaimed ? parseInt(permitsClaimed) : 0;
-
-      if (rankInt !== undefined) {
-        try {
-          this.metrics.onCounterValueResolved(permitsClaimedInt);
-        } catch (err: unknown) {
-          // pass
-        }
-      }
 
       if (rankInt === undefined || rankInt >= this.config.maxConcurrent) {
         pipeline.zRem(key, uniqId);
@@ -91,13 +78,8 @@ export abstract class BaseBulkheadStrategy {
     return await this.cache.zCount(
       key,
       now - (this.config.maxWait + this.config.executionTimeout),
-      now
+      now,
     );
-  }
-
-  withMetrics(metrics: BulkheadMetricsImpl) {
-    this.metrics = metrics;
-    return this;
   }
 }
 
@@ -115,7 +97,7 @@ export class ThreadPoolBulkheadStrategy extends BaseBulkheadStrategy {
     while (Date.now() < end) {
       const acquired = await super.acquireSemaphore(
         KeyBuilder.bulkheadThreadPoolKey(this.threadPoolUid),
-        uniqId.toString()
+        uniqId.toString(),
       );
 
       if (acquired) {
@@ -129,13 +111,13 @@ export class ThreadPoolBulkheadStrategy extends BaseBulkheadStrategy {
   async releaseBulkhead(uniqId: UniqueId) {
     return await super.releaseSemaphore(
       KeyBuilder.bulkheadThreadPoolKey(this.threadPoolUid),
-      uniqId.toString()
+      uniqId.toString(),
     );
   }
 
   async getAvailablePermits() {
     const claimed = await super.getClaimedCapacity(
-      KeyBuilder.bulkheadThreadPoolKey(this.threadPoolUid)
+      KeyBuilder.bulkheadThreadPoolKey(this.threadPoolUid),
     );
     return this.config.maxConcurrent - claimed;
   }
@@ -154,7 +136,7 @@ export class SemaphoreBulkheadStrategy extends BaseBulkheadStrategy {
     while (Date.now() < end) {
       const acquired = await super.acquireSemaphore(
         KeyBuilder.bulkheadSemaphoreKey(this.config.name),
-        uniqId.toString()
+        uniqId.toString(),
       );
 
       if (acquired) {
@@ -168,13 +150,13 @@ export class SemaphoreBulkheadStrategy extends BaseBulkheadStrategy {
   async releaseBulkhead(uniqId: UniqueId) {
     return await super.releaseSemaphore(
       KeyBuilder.bulkheadSemaphoreKey(this.config.name),
-      uniqId.toString()
+      uniqId.toString(),
     );
   }
 
   async getAvailablePermits() {
     const claimed = await super.getClaimedCapacity(
-      KeyBuilder.bulkheadSemaphoreKey(this.config.name)
+      KeyBuilder.bulkheadSemaphoreKey(this.config.name),
     );
     return this.config.maxConcurrent - claimed;
   }

@@ -1,29 +1,18 @@
 import { ResilienceProviderService } from '@forts/resilience4ts-core';
 import { Hedge } from '../hedge';
-
-import { RedisMemoryServer } from 'redis-memory-server';
 import { setTimeout } from 'timers/promises';
 
-jest.setTimeout(60000);
+jest.setTimeout(10000);
 
 let svc: ResilienceProviderService;
 let hedge: Hedge;
-let redisServer: RedisMemoryServer;
 let redisHost: string;
 let redisPort: number;
 
 describe('Hedge', () => {
   beforeAll(async () => {
-    redisServer = new RedisMemoryServer();
-    redisHost = await redisServer.getHost();
-    redisPort = await redisServer.getPort();
-  });
-
-  afterAll(async () => {
-    await redisServer.stop();
-  });
-
-  it('should initialize hedge', async () => {
+    redisHost = '127.0.0.1';
+    redisPort = 6379;
     svc = ResilienceProviderService.forRoot({
       resilience: {
         serviceName: 'r4t-test',
@@ -35,13 +24,11 @@ describe('Hedge', () => {
         redisUser: '',
         redisPrefix: 'r4t-test',
       },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: false,
-      },
     });
     await svc.start();
+  });
+
+  it('should initialize hedge', async () => {
     const listener = jest.fn();
     svc.emitter.addListener('r4t-hedge-ready', listener);
 

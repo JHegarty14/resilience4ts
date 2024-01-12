@@ -4,18 +4,18 @@ on:
   pull_request:
     branches:
       - main
-      - develop
 
 jobs:
   build:
     runs-on:
-      - self-hosted
-      - linux
+      - ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+        redis-version: [7.2.4]
+
     steps:
-      - name: Extract Branch Name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
       - name: Checkout
         uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
@@ -24,7 +24,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
       - run: pnpm install
       - name: Check Typescript
@@ -33,6 +33,10 @@ jobs:
       - name: Check Prettier
         run: |
           pnpm prettier
+      - name: Start Redis
+        uses: supercharge/redis-github-action@1.8.0
+        with:
+          redis-version: ${{ matrix.redis-version }}
       - name: Run Tests
         run: |
           npm i -g pnpm && pnpm lint && pnpm test:ci

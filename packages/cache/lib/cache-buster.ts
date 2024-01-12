@@ -17,7 +17,7 @@ export class CacheBuster implements ResilienceDecorator {
   private constructor(
     private readonly name: string,
     private readonly config: CacheBusterConfigImpl,
-    private readonly tags: Map<string, string>
+    private readonly tags: Map<string, string>,
   ) {
     CacheBuster.core = ResilienceProviderService.forRoot();
     this.init();
@@ -60,7 +60,7 @@ export class CacheBuster implements ResilienceDecorator {
           CacheBuster.core.emitter.emit(
             'r4t-cache-bust',
             { name: this.name, keys: keysToInvalidate },
-            this.tags
+            this.tags,
           );
           await CacheBuster.core.cache.del(keysToInvalidate);
         }
@@ -74,7 +74,7 @@ export class CacheBuster implements ResilienceDecorator {
    */
   onBound<Args, Return>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown
+    self: unknown,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
@@ -93,7 +93,7 @@ export class CacheBuster implements ResilienceDecorator {
           CacheBuster.core.emitter.emit(
             'r4t-cache-bust',
             { name: this.name, keys: keysToInvalidate },
-            this.tags
+            this.tags,
           );
           await CacheBuster.core.cache.del(keysToInvalidate);
         }

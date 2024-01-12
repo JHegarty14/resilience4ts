@@ -1,7 +1,7 @@
 {
   "name": "@forts/resilience4ts-bulkhead",
   "version": "0.0.0",
-  "description": "",
+  "description": "Distributed bulkhead pattern implementation for @forts/resilience4ts",
   "main": "dist/index.js",
   "files": [
     "dist"
@@ -17,7 +17,6 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.6",
-    "@types/node": "^20.8.7",
-    "redis-memory-server": "^0.9.0"
+    "@types/node": "^20.8.7"
   }
 }

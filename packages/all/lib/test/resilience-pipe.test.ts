@@ -3,38 +3,26 @@ import { Bulkhead } from '@forts/resilience4ts-bulkhead';
 import { Cache, RequestScopedCache, RequestScopedCacheType } from '@forts/resilience4ts-cache';
 import { CircuitBreaker, CircuitBreakerStrategy } from '@forts/resilience4ts-circuit-breaker';
 import { ConcurrentLock } from '@forts/resilience4ts-concurrent-lock';
+import { Fallback } from '@forts/resilience4ts-fallback';
+import { Hedge } from '@forts/resilience4ts-hedge';
 import { RateLimiter, RateLimiterScope } from '@forts/resilience4ts-rate-limiter';
 import { Retry } from '@forts/resilience4ts-retry';
 import { Timeout } from '@forts/resilience4ts-timeout';
-
 import crypto from 'crypto';
 
 import { ResiliencePipe } from '../resilience-pipe';
 
-import { RedisMemoryServer } from 'redis-memory-server';
-import { Fallback } from '@forts/resilience4ts-fallback';
-import { Hedge } from '@forts/resilience4ts-hedge';
-
-jest.setTimeout(60000);
+jest.setTimeout(10000);
 
 let svc: ResilienceProviderService;
 let pipe: ResiliencePipe<any, any>;
-let redisServer: RedisMemoryServer;
 let redisHost: string;
 let redisPort: number;
 
 describe('ResiliencePipe', () => {
   beforeAll(async () => {
-    redisServer = new RedisMemoryServer();
-    redisHost = await redisServer.getHost();
-    redisPort = await redisServer.getPort();
-  });
-
-  afterAll(async () => {
-    await redisServer.stop();
-  });
-
-  it('should initialize ResiliencePipe', async () => {
+    redisHost = '127.0.0.1';
+    redisPort = 6379;
     svc = ResilienceProviderService.forRoot({
       resilience: {
         serviceName: 'r4t-test',
@@ -46,48 +34,44 @@ describe('ResiliencePipe', () => {
         redisUser: '',
         redisPrefix: 'r4t-test',
       },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: true,
-      },
     });
     await svc.start();
+  });
 
+  it('should initialize ResiliencePipe', async () => {
     const decorated = jest.fn().mockResolvedValue('OK');
 
-    const bulkhead = Bulkhead.of('test', {
-      name: 'test',
+    const bulkhead = Bulkhead.of('init-pipe-test', {
       getUniqueId: () => 'bulkhead_uid',
     });
 
-    const cache = Cache.of('test', {
+    const cache = Cache.of('init-pipe-test', {
       expiration: 10000,
       extractKey: () => 'cache_key',
     });
 
-    const circuit = CircuitBreaker.of('test', {
+    const circuit = CircuitBreaker.of('init-pipe-test', {
       strategy: CircuitBreakerStrategy.Percentage,
       threshold: 0.5,
     });
 
-    const lock = ConcurrentLock.of('test', {
+    const lock = ConcurrentLock.of('init-pipe-test', {
       withKey: () => 'test',
     });
 
-    const rateLimiter = RateLimiter.of('test', {
+    const rateLimiter = RateLimiter.of('init-pipe-test', {
       permitLimit: 1,
       window: 1000,
       scope: RateLimiterScope.Global,
     });
 
-    const retry = Retry.of('test', {
+    const retry = Retry.of('init-pipe-test', {
       maxAttempts: 3,
       maxInterval: 1000,
     });
 
-    const timeout = Timeout.of('test', {
-      timeout: 1000,
+    const timeout = Timeout.of('init-pipe-test', {
+      timeout: 7000,
     });
 
     pipe = ResiliencePipe.of(decorated)
@@ -108,7 +92,6 @@ describe('ResiliencePipe', () => {
     const decorated = jest.fn().mockResolvedValue('OK');
 
     const bulkhead = Bulkhead.of('bulkhead', {
-      name: 'bulkhead',
       getUniqueId: () => 'bulkhead_uid',
     });
 

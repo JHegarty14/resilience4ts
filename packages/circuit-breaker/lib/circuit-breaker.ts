@@ -1,7 +1,6 @@
 import {
   ResilienceDecorator,
   ResilienceProviderService,
-  Stopwatch,
   assertUnreachable,
   unwrap,
 } from '@forts/resilience4ts-core';
@@ -19,7 +18,7 @@ import {
   defaultCircuitBucket,
   recordToCircuitBucket,
 } from './types/circuit-breaker-model.type';
-import { CircuitBreakerMetricsImpl, KeyBuilder } from './internal';
+import { KeyBuilder } from './internal';
 
 /**
  * CircuitBreaker Decorator
@@ -42,14 +41,10 @@ export class CircuitBreaker implements ResilienceDecorator {
   private constructor(
     readonly name: string,
     private readonly config: CircuitBreakerConfigImpl,
-    private readonly tags: Map<string, string>
+    private readonly tags: Map<string, string>,
   ) {
     CircuitBreaker.core = ResilienceProviderService.forRoot();
     this.strategy = CircuitBreakerStrategyFactory.resolve(config);
-    this.Metrics = new CircuitBreakerMetricsImpl(
-      this.config,
-      CircuitBreaker.core.config.metrics?.captureInterval
-    );
     this.initialized = this.init();
   }
 
@@ -60,7 +55,7 @@ export class CircuitBreaker implements ResilienceDecorator {
   static of(
     name: string,
     config: CircuitBreakerConfig,
-    tags?: Map<string, string>
+    tags?: Map<string, string>,
   ): CircuitBreaker {
     return new CircuitBreaker(name, new CircuitBreakerConfigImpl(config), tags || new Map());
   }
@@ -69,7 +64,7 @@ export class CircuitBreaker implements ResilienceDecorator {
     await CircuitBreaker.core.start();
     const registered = await CircuitBreaker.core.cache.zScore(
       KeyBuilder.circuitRegistryKey(),
-      this.name
+      this.name,
     );
 
     if (!registered) {
@@ -105,14 +100,12 @@ export class CircuitBreaker implements ResilienceDecorator {
           assertUnreachable(circuitState);
       }
 
-      const stopwatch = Stopwatch.start();
-
       try {
         const result = await fn(...args);
-        await this.onSuccess(stopwatch);
+        await this.onSuccess();
         return result;
       } catch (e) {
-        await this.onError(stopwatch);
+        await this.onError();
         throw e;
       } finally {
         const activeBucket = await this.getActiveBucket();
@@ -127,7 +120,7 @@ export class CircuitBreaker implements ResilienceDecorator {
    */
   onBound<Args, Return>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown
+    self: unknown,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
@@ -149,14 +142,12 @@ export class CircuitBreaker implements ResilienceDecorator {
           assertUnreachable(circuitState);
       }
 
-      const stopwatch = Stopwatch.start();
-
       try {
         const result = await fn.call(self, ...args);
-        await this.onSuccess(stopwatch);
+        await this.onSuccess();
         return result;
       } catch (e) {
-        await this.onError(stopwatch);
+        await this.onError();
         throw e;
       } finally {
         const activeBucket = await this.getActiveBucket();
@@ -165,7 +156,7 @@ export class CircuitBreaker implements ResilienceDecorator {
     };
   }
 
-  private async onError(stopwatch: Stopwatch) {
+  private async onError() {
     const activeBucket = await this.getActiveBucket();
 
     const pipeline = CircuitBreaker.core.cache.multi();
@@ -179,10 +170,8 @@ export class CircuitBreaker implements ResilienceDecorator {
 
     const isThresholdExceeded = this.strategy.isThresholdExceeded(
       bucketDetails.failure,
-      bucketDetails.success
+      bucketDetails.success,
     );
-
-    this.Metrics.onCallFailure(stopwatch.getElapsedMilliseconds());
 
     if (isThresholdExceeded) {
       CircuitBreaker.core.emitter.emit(CircuitEvents.open, this.name, this.tags);
@@ -194,7 +183,7 @@ export class CircuitBreaker implements ResilienceDecorator {
     }
   }
 
-  private async onSuccess(stopwatch: Stopwatch) {
+  private async onSuccess() {
     const activeBucket = await this.getActiveBucket();
 
     await CircuitBreaker.core.cache
@@ -207,8 +196,6 @@ export class CircuitBreaker implements ResilienceDecorator {
       .exec();
 
     CircuitBreaker.core.emitter.emit(CircuitEvents.closed, this.name);
-
-    this.Metrics.onCallSuccess(stopwatch.getElapsedMilliseconds());
   }
 
   withWhitelist(...errors: Error[]): CircuitBreaker {
@@ -255,7 +242,6 @@ export class CircuitBreaker implements ResilienceDecorator {
     }
 
     await this.incrementCounter(activeBucket, 'rejection');
-    this.Metrics.onCallNotPermitted();
     throw new CircuitOpenException(this.name);
   }
 
@@ -286,7 +272,7 @@ export class CircuitBreaker implements ResilienceDecorator {
   private async getCircuitState(): Promise<CircuitBreakerState> {
     return (await CircuitBreaker.core.cache.zScore(
       KeyBuilder.circuitRegistryKey(),
-      this.name
+      this.name,
     )) as CircuitBreakerState;
   }
 
@@ -324,7 +310,7 @@ export class CircuitBreaker implements ResilienceDecorator {
         BY: 'SCORE',
         REV: rev || undefined,
         LIMIT: { offset: 0, count },
-      }
+      },
     );
 
     return buckets ?? [];
@@ -333,6 +319,4 @@ export class CircuitBreaker implements ResilienceDecorator {
   getName() {
     return this.name;
   }
-
-  readonly Metrics: CircuitBreakerMetricsImpl;
 }

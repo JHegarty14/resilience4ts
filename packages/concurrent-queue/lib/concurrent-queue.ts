@@ -25,7 +25,7 @@ export class ConcurrentQueue implements ResilienceDecorator {
   private constructor(
     private readonly name: string,
     private readonly config: ConcurrentQueueConfigImpl,
-    private readonly tags: Map<string, string>
+    private readonly tags: Map<string, string>,
   ) {
     ConcurrentQueue.core = ResilienceProviderService.forRoot();
     this.initialized = this.init();
@@ -38,7 +38,7 @@ export class ConcurrentQueue implements ResilienceDecorator {
   static of(
     name: string,
     config: ConcurrentQueueConfig,
-    tags?: Map<string, string>
+    tags?: Map<string, string>,
   ): ConcurrentQueue {
     return new ConcurrentQueue(name, new ConcurrentQueueConfigImpl(config), tags || new Map());
   }
@@ -46,7 +46,7 @@ export class ConcurrentQueue implements ResilienceDecorator {
   private async init(): Promise<void> {
     const registered = await ConcurrentQueue.core.cache.sIsMember(
       KeyBuilder.lockQueueRegistryKey(),
-      this.name
+      this.name,
     );
 
     if (!registered) {
@@ -112,7 +112,7 @@ export class ConcurrentQueue implements ResilienceDecorator {
    */
   onBound<Args, Return>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown
+    self: unknown,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
@@ -163,7 +163,7 @@ export class ConcurrentQueue implements ResilienceDecorator {
     uuid: string,
     maxDuration: number,
     attempt: number,
-    maxAttempts: number
+    maxAttempts: number,
   ): Promise<boolean> {
     if (attempt >= maxAttempts) {
       throw new QueueWaitExceeded(this.name, uniqueId);
@@ -177,7 +177,7 @@ export class ConcurrentQueue implements ResilienceDecorator {
       {
         BY: 'SCORE',
         LIMIT: { offset: 0, count: 20 },
-      }
+      },
     );
     const now = Date.now();
 
@@ -188,7 +188,7 @@ export class ConcurrentQueue implements ResilienceDecorator {
         await ConcurrentQueue.core.cache.zRemRangeByScore(
           KeyBuilder.lockQueueKey(uniqueId),
           0,
-          Math.max(...expired)
+          Math.max(...expired),
         );
         return true;
       } else {

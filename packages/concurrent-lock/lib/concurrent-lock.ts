@@ -23,7 +23,7 @@ export class ConcurrentLock implements ResilienceDecorator {
   private constructor(
     private readonly name: string,
     private readonly config: ConcurrentLockConfigImpl,
-    private readonly tags: Map<string, string>
+    private readonly tags: Map<string, string>,
   ) {
     ConcurrentLock.core = ResilienceProviderService.forRoot();
     this.initialized = this.init();
@@ -36,7 +36,7 @@ export class ConcurrentLock implements ResilienceDecorator {
   static of(
     name: string,
     config: ConcurrentLockConfig,
-    tags?: Map<string, string>
+    tags?: Map<string, string>,
   ): ConcurrentLock {
     return new ConcurrentLock(name, new ConcurrentLockConfigImpl(config), tags || new Map());
   }
@@ -44,7 +44,7 @@ export class ConcurrentLock implements ResilienceDecorator {
   private async init(): Promise<void> {
     const registered = await ConcurrentLock.core.cache.sIsMember(
       KeyBuilder.lockRegistryKey(),
-      this.name
+      this.name,
     );
 
     if (!registered) {
@@ -77,7 +77,7 @@ export class ConcurrentLock implements ResilienceDecorator {
           {
             NX: true,
             PX: duration,
-          }
+          },
         );
         if (!acquired) {
           ConcurrentLock.core.emitter.emit('r4t-lock-acquisition-failed', this.name, this.tags);
@@ -112,7 +112,7 @@ export class ConcurrentLock implements ResilienceDecorator {
    */
   onBound<Args, Return>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown
+    self: unknown,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
@@ -131,7 +131,7 @@ export class ConcurrentLock implements ResilienceDecorator {
           {
             NX: true,
             PX: duration,
-          }
+          },
         );
         if (!acquired) {
           ConcurrentLock.core.emitter.emit('r4t-lock-acquisition-failed', this.name, this.tags);

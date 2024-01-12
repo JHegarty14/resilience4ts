@@ -1,11 +1,7 @@
 import { ResilienceProviderService } from '@forts/resilience4ts-core';
 import type { ResilienceDecorator } from '@forts/resilience4ts-core';
 import { RateLimitViolationException } from './exceptions';
-import {
-  BaseRateLimiterStrategy,
-  RateLimiterMetrics,
-  RateLimiterStrategyFactory,
-} from './internal';
+import { BaseRateLimiterStrategy, RateLimiterStrategyFactory } from './internal';
 import { type RateLimiterConfig, RateLimiterConfigImpl } from './types';
 
 /**
@@ -25,10 +21,9 @@ export class RateLimiter implements ResilienceDecorator {
   private constructor(
     private readonly name: string,
     private readonly config: RateLimiterConfigImpl,
-    private readonly tags: Map<string, string>
+    private readonly tags: Map<string, string>,
   ) {
     RateLimiter.core = ResilienceProviderService.forRoot();
-    this.Metrics = new RateLimiterMetrics(RateLimiter.core.config.metrics?.captureInterval);
     this.initialized = this.init();
   }
 
@@ -43,10 +38,7 @@ export class RateLimiter implements ResilienceDecorator {
   private async init(): Promise<void> {
     await RateLimiter.core.start();
 
-    this.strategy = RateLimiterStrategyFactory.resolve(
-      RateLimiter.core.cache,
-      this.config
-    ).withMetrics(this.Metrics);
+    this.strategy = RateLimiterStrategyFactory.resolve(RateLimiter.core.cache, this.config);
   }
 
   /**
@@ -60,7 +52,7 @@ export class RateLimiter implements ResilienceDecorator {
 
       const allowed = await this.strategy.guard(
         this.name,
-        this.config.requestIdentifier?.(...args)
+        this.config.requestIdentifier?.(...args),
       );
 
       if (!allowed) {
@@ -78,7 +70,7 @@ export class RateLimiter implements ResilienceDecorator {
    */
   onBound<Args, Return>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown
+    self: unknown,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
@@ -87,7 +79,7 @@ export class RateLimiter implements ResilienceDecorator {
 
       const allowed = await this.strategy.guard(
         this.name,
-        this.config.requestIdentifier?.(...args)
+        this.config.requestIdentifier?.(...args),
       );
 
       if (!allowed) {
@@ -102,6 +94,4 @@ export class RateLimiter implements ResilienceDecorator {
   getName() {
     return this.name;
   }
-
-  readonly Metrics: RateLimiterMetrics;
 }

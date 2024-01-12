@@ -4,7 +4,6 @@ import { RetryException, ScheduledRetryException } from './retry-exception.type'
 export type RetryConfig = {
   readonly wait?: number;
   readonly maxAttempts?: number;
-  readonly failAfterMaxAttempts?: boolean;
   readonly whitelist?: Array<Error>;
   readonly scheduleRetry?: boolean;
   readonly retryMode?: RetryBackoff;
@@ -28,7 +27,6 @@ export class RetryConfigImpl {
 
   wait: number;
   maxAttempts: number;
-  failAfterMaxAttempts: boolean;
   whitelist: Error[];
   scheduled: boolean;
   retryMode: RetryBackoff;
@@ -39,7 +37,6 @@ export class RetryConfigImpl {
   constructor(config: RetryConfig) {
     this.wait = config.wait ?? this.defaultWait;
     this.maxAttempts = config.maxAttempts ?? this.defaultMaxAttempts;
-    this.failAfterMaxAttempts = config.failAfterMaxAttempts ?? false;
     this.whitelist = config.whitelist ?? [];
     this.scheduled = config.scheduleRetry ?? false;
     this.retryMode = config.retryMode ?? this.defaultRetryBackoff;
@@ -60,11 +57,6 @@ export class RetryConfigImpl {
     Guard.throwIfNotPositive(wait, 'wait');
 
     this.wait = wait;
-    return this;
-  }
-
-  withFailAfterMaxAttempts(failAfterMaxAttempts: boolean): RetryConfigImpl {
-    this.failAfterMaxAttempts = failAfterMaxAttempts;
     return this;
   }
 

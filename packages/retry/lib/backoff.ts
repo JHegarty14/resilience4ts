@@ -40,7 +40,7 @@ export class Backoff {
     strategy: RetryBackoff,
     maxAttempts: number,
     interval: number,
-    wait: number
+    wait: number,
   ) {
     const calculatedMax = Array(maxAttempts)
       .fill(interval)

@@ -30,6 +30,3 @@ coverage:
 	npm i -g pnpm
 	pnpm i --frozen-lockfile
 	pnpx jest --coverage
-
-coveralls_coverage:
-	pnpx coveralls < coverage/lcov.info

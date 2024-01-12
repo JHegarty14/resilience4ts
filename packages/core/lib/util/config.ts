@@ -3,9 +3,7 @@ import toml from 'toml';
 import { ConfigFileExtensions, ResilienceConfig } from '../types';
 import { assertUnreachable } from './common';
 
-const validExtensions = new Set(
-  Object.values(ConfigFileExtensions).map((ext) => ext.toLowerCase())
-);
+const validExtensions = new Set(['json', 'toml']);
 
 export class ConfigLoader {
   static getFileType(path: string): ConfigFileExtensions {

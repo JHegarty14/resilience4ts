@@ -20,7 +20,7 @@ export class RequestScopedCache implements ResilienceDecorator {
   private constructor(
     private readonly name: string,
     private readonly config: RequestScopedCacheConfig,
-    private readonly tags: Map<string, string>
+    private readonly tags: Map<string, string>,
   ) {
     RequestScopedCache.core = ResilienceProviderService.forRoot();
     this.init();
@@ -34,7 +34,7 @@ export class RequestScopedCache implements ResilienceDecorator {
   static of(
     name: string,
     config: RequestScopedCacheConfig,
-    tags?: Map<string, string>
+    tags?: Map<string, string>,
   ): RequestScopedCache {
     return new RequestScopedCache(name, config, tags || new Map());
   }
@@ -56,7 +56,7 @@ export class RequestScopedCache implements ResilienceDecorator {
 
       const cache = RequestScopedCacheFactory.resolve(
         this.config.type,
-        RequestScopedCache.core.cache
+        RequestScopedCache.core.cache,
       );
       const scope = this.config.extractScope(...args);
       try {
@@ -68,7 +68,7 @@ export class RequestScopedCache implements ResilienceDecorator {
           RequestScopedCache.core.emitter.emit(
             'r4t-cache-hit',
             { name: this.name, cacheKey },
-            this.tags
+            this.tags,
           );
           return cached;
         }
@@ -76,7 +76,7 @@ export class RequestScopedCache implements ResilienceDecorator {
         RequestScopedCache.core.emitter.emit(
           'r4t-cache-miss',
           { name: this.name, cacheKey },
-          this.tags
+          this.tags,
         );
         const result = await fn(...args);
 
@@ -105,14 +105,14 @@ export class RequestScopedCache implements ResilienceDecorator {
    */
   onBound<Args, Return>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown
+    self: unknown,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 
       const cache = RequestScopedCacheFactory.resolve(
         this.config.type,
-        RequestScopedCache.core.cache
+        RequestScopedCache.core.cache,
       );
       const scope = this.config.extractScope(...args);
       try {
@@ -124,7 +124,7 @@ export class RequestScopedCache implements ResilienceDecorator {
           RequestScopedCache.core.emitter.emit(
             'r4t-cache-hit',
             { name: this.name, cacheKey },
-            this.tags
+            this.tags,
           );
           return cached;
         }
@@ -132,7 +132,7 @@ export class RequestScopedCache implements ResilienceDecorator {
         RequestScopedCache.core.emitter.emit(
           'r4t-cache-miss',
           { name: this.name, cacheKey },
-          this.tags
+          this.tags,
         );
         const result = await fn.call(self, ...args);
 
@@ -156,19 +156,19 @@ export class RequestScopedCache implements ResilienceDecorator {
   }
 
   onCacheHit(
-    listener: (event: { name: string; cacheKey: string }, tags: Map<string, string>) => void
+    listener: (event: { name: string; cacheKey: string }, tags: Map<string, string>) => void,
   ) {
     RequestScopedCache.core.emitter.on('r4t-cache-hit', listener);
   }
 
   onCacheMiss(
-    listener: (event: { name: string; cacheKey: string }, tags: Map<string, string>) => void
+    listener: (event: { name: string; cacheKey: string }, tags: Map<string, string>) => void,
   ) {
     RequestScopedCache.core.emitter.on('r4t-cache-miss', listener);
   }
 
   onCacheError(
-    listener: (error: { error: Error; name: string }, tags: Map<string, string>) => void
+    listener: (error: { error: Error; name: string }, tags: Map<string, string>) => void,
   ) {
     RequestScopedCache.core.emitter.on('r4t-cache-error', listener);
   }

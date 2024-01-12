@@ -1,27 +1,20 @@
 import { ResilienceProviderService } from '@forts/resilience4ts-core';
 import { ConcurrentLock } from '../concurrent-lock';
-import { RedisMemoryServer } from 'redis-memory-server';
 import { setTimeout } from 'timers/promises';
 import { ConcurrentLockException } from '../types';
 import { Result } from 'oxide.ts';
 
-jest.setTimeout(60000);
+jest.setTimeout(10000);
 
 let svc: ResilienceProviderService;
 let lock: ConcurrentLock;
-let redisServer: RedisMemoryServer;
 let redisHost: string;
 let redisPort: number;
 
 describe('ConcurrentLock', () => {
   beforeAll(async () => {
-    redisServer = new RedisMemoryServer();
-    redisHost = await redisServer.getHost();
-    redisPort = await redisServer.getPort();
-  });
-
-  afterAll(async () => {
-    await redisServer.stop();
+    redisHost = '127.0.0.1';
+    redisPort = 6379;
   });
 
   it('should initialize lock', async () => {
@@ -35,11 +28,6 @@ describe('ConcurrentLock', () => {
         redisPassword: '',
         redisUser: '',
         redisPrefix: 'r4t-test',
-      },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: true,
       },
     });
     await svc.start();
@@ -66,11 +54,6 @@ describe('ConcurrentLock', () => {
         redisPassword: '',
         redisUser: '',
         redisPrefix: 'r4t-test',
-      },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: false,
       },
     });
     await svc.start();
@@ -116,11 +99,6 @@ describe('ConcurrentLock', () => {
         redisUser: '',
         redisPrefix: 'r4t-test',
       },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: true,
-      },
     });
     await svc.start();
 
@@ -157,11 +135,6 @@ describe('ConcurrentLock', () => {
         redisPassword: '',
         redisUser: '',
         redisPrefix: 'r4t-test',
-      },
-      scheduler: {
-        defaultInterval: 1000,
-        recoveryInterval: 1000,
-        runConsumer: true,
       },
     });
     await svc.start();

@@ -70,7 +70,7 @@ export class HedgeConfigImpl {
   }
 
   withActionGenerator(
-    actionGenerator: <Args, Ret>(...args: Args extends unknown[] ? Args : [Args]) => Promise<Ret>
+    actionGenerator: <Args, Ret>(...args: Args extends unknown[] ? Args : [Args]) => Promise<Ret>,
   ) {
     this.actionGenerator = actionGenerator;
     return this;

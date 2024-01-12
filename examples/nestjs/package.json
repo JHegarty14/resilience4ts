@@ -22,7 +22,6 @@
   "dependencies": {
     "@forts/resilience4ts-core": "workspace:^",
     "@forts/resilience4ts-nestjs": "workspace:^",
-    "@forts/resilience4ts-open-telemetry": "workspace:^",
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",

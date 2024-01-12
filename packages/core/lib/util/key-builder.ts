@@ -9,7 +9,7 @@ export class ResilienceKeyBuilder {
 
   static build(...parts: string[]) {
     return `${ResilienceKeyBuilder._prefix}${ResilienceKeyBuilder._delimiter}${parts.join(
-      ResilienceKeyBuilder._delimiter
+      ResilienceKeyBuilder._delimiter,
     )}`;
   }
 

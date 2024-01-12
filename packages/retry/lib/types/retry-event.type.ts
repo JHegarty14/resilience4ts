@@ -53,7 +53,6 @@ export class RetryEventImpl<T> {
 }
 
 export function recordToRetryEvent<T>(record: { [x: string]: string }): RetryEvent<T> {
-  console.log('RECORD DATA', record.data);
   return {
     taskUid: record.taskUid,
     attempts: Number(record.attempts),

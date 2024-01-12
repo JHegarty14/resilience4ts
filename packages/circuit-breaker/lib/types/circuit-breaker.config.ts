@@ -23,7 +23,7 @@ export enum CircuitBreakerStrategy {
 export const DefaultCircuitBreakerConfig = {
   strategy: CircuitBreakerStrategy.Percentage,
   threshold: 0.5,
-  interval: 1000 * 60 * 15,
+  interval: 1000 * 15,
   minimumFailures: 3,
   whitelist: [],
   circuitConnectionRetries: 3,

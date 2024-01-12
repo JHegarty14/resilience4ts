@@ -1,6 +1,6 @@
 import { ResilienceProviderService, SafePromise } from '@forts/resilience4ts-core';
 import type { ResilienceDecorator } from '@forts/resilience4ts-core';
-import { HedgeExecutor, HedgeMetrics, KeyBuilder } from './internal';
+import { HedgeExecutor, KeyBuilder } from './internal';
 import { type HedgeConfig, HedgeConfigImpl, type HedgedResult } from './types';
 import { HedgeEvent, HedgeEventType } from './event';
 
@@ -24,11 +24,10 @@ export class Hedge implements ResilienceDecorator {
   private constructor(
     private readonly name: string,
     private readonly config: HedgeConfigImpl,
-    private readonly tags: Map<string, string>
+    private readonly tags: Map<string, string>,
   ) {
     this.hedgeExecutor = HedgeExecutor.new().corePoolSize(config.maxHedgedAttempts).build();
     Hedge.core = ResilienceProviderService.forRoot();
-    this.Metrics = new HedgeMetrics(this.config, Hedge.core.config.metrics?.captureInterval);
     this.initialized = this.init();
   }
 
@@ -105,7 +104,7 @@ export class Hedge implements ResilienceDecorator {
    */
   onBound<Args, Return>(
     fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown
+    self: unknown,
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
@@ -119,7 +118,7 @@ export class Hedge implements ResilienceDecorator {
           ? actionGenerator.call<unknown, any[], Promise<Return>>(self, ...args)
           : fn.call<unknown, Args extends unknown[] ? Args : [Args], Promise<Return>>(
               self,
-              ...args
+              ...args,
             );
 
       const sf = this.hedgeExecutor.schedule<Return>(hedged, this.config.delay, controller);
@@ -162,7 +161,7 @@ export class Hedge implements ResilienceDecorator {
   }
 
   onHedging(
-    listener: (event: { name: string; cacheKey: string }, tags: Map<string, string>) => void
+    listener: (event: { name: string; cacheKey: string }, tags: Map<string, string>) => void,
   ) {
     Hedge.core.emitter.on(KeyBuilder.hedgeKey(this.name), listener);
   }
@@ -190,6 +189,4 @@ export class Hedge implements ResilienceDecorator {
   getName() {
     return this.name;
   }
-
-  readonly Metrics: HedgeMetrics;
 }
