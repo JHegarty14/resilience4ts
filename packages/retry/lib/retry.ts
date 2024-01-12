@@ -9,7 +9,7 @@ import {
 } from './types';
 import { ResilienceProviderService } from '@forts/resilience4ts-core';
 import { Err, Ok, Result, Option } from 'oxide.ts';
-import { RetryValidationException } from './exceptions';
+import { MaxRetriesExceeded, RetryValidationException } from './exceptions';
 import { Backoff } from './backoff';
 import type { ResilienceDecorator } from '@forts/resilience4ts-core';
 
@@ -98,7 +98,8 @@ export class Retry implements ResilienceDecorator {
     }
 
     let error!: RetryException;
-    while (retryEvent.unwrap().attempts < maxAttempts) {
+    let attempts = retryEvent.unwrap().attempts;
+    while (attempts < maxAttempts) {
       try {
         const raw = await fn(...args);
 
@@ -110,19 +111,14 @@ export class Retry implements ResilienceDecorator {
         }
       } catch (err: unknown) {
         error = err instanceof Error ? err : new Error(`Unknown error: ${JSON.stringify(err)}`);
-        Retry.core.logger.info('error');
+        Retry.core.logger.error(error);
       }
-      retryEvent.unwrap().attempts++;
-      await Backoff.wait(
-        backoff ?? RetryBackoff.Linear,
-        retryEvent.unwrap().attempts,
-        this.config.maxAttempts,
-        wait,
-      );
+      attempts++;
+      await Backoff.wait(backoff ?? RetryBackoff.Linear, attempts, this.config.maxAttempts, wait);
     }
 
     onRuntimeError(error);
-    throw error;
+    throw new MaxRetriesExceeded(this.name, error);
   }
 
   private async retryInnerBound<Args, Return, Opts extends RetryExecutionOptions>(
@@ -144,7 +140,8 @@ export class Retry implements ResilienceDecorator {
     }
 
     let error!: RetryException;
-    while (retryEvent.unwrap().attempts < maxAttempts) {
+    let attempts = retryEvent.unwrap().attempts;
+    while (attempts < maxAttempts) {
       try {
         const raw = await fn.call(self, ...args);
 
@@ -156,19 +153,14 @@ export class Retry implements ResilienceDecorator {
         }
       } catch (err: unknown) {
         error = err instanceof Error ? err : new Error(`Unknown error: ${JSON.stringify(err)}`);
-        Retry.core.logger.info('error');
+        Retry.core.logger.error(error);
       }
-      retryEvent.unwrap().attempts++;
-      await Backoff.wait(
-        backoff ?? RetryBackoff.Linear,
-        retryEvent.unwrap().attempts,
-        this.config.maxAttempts,
-        wait,
-      );
+      attempts++;
+      await Backoff.wait(backoff ?? RetryBackoff.Linear, attempts, this.config.maxAttempts, wait);
     }
 
     onRuntimeError(error);
-    throw error;
+    throw new MaxRetriesExceeded(this.name, error);
   }
 
   private validateRetryResult<T>(

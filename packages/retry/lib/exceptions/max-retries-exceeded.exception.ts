@@ -1,5 +1,7 @@
+import { RetryException } from '../types';
+
 export class MaxRetriesExceeded extends Error {
-  constructor(message?: string) {
-    super(message);
+  constructor(message?: string, cause?: RetryException) {
+    super(message, { cause });
   }
 }

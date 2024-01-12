@@ -37,7 +37,6 @@ describe('Bulkhead', () => {
     const decorated = jest.fn().mockResolvedValue('OK');
 
     bulkhead = Bulkhead.of('test', {
-      name: 'test',
       getUniqueId: () => 'bulkhead_uid',
     });
 
@@ -57,7 +56,6 @@ describe('Bulkhead', () => {
     });
 
     bulkhead = Bulkhead.of('test', {
-      name: 'test',
       maxWait: 1000,
       getUniqueId: () => crypto.randomUUID(),
     });
@@ -113,7 +111,6 @@ describe('Bulkhead', () => {
     });
 
     bulkhead = Bulkhead.of('test', {
-      name: 'test',
       maxWait: 1000,
       maxConcurrent: 5,
       getUniqueId: () => crypto.randomUUID(),
@@ -147,22 +144,5 @@ describe('Bulkhead', () => {
 
     expect(success).toBe(5);
     expect(failed).toBe(6);
-  });
-
-  it('should create Bulkhead from defaults', async () => {
-    const listener = jest.fn();
-    svc.emitter.addListener('r4t-bulkhead-ready', listener);
-
-    const decorated = jest.fn().mockResolvedValue('OK');
-
-    bulkhead = Bulkhead.ofDefaults('test');
-
-    const decoratedBulkhead = bulkhead.on(decorated);
-
-    const result = await decoratedBulkhead();
-
-    expect(listener).toHaveBeenCalledTimes(1);
-
-    expect(result).toBe('OK');
   });
 });

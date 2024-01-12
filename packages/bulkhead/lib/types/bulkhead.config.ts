@@ -1,7 +1,6 @@
 import type { UniqueId } from '@forts/resilience4ts-core';
 
 export type BulkheadConfig = {
-  readonly name: string;
   getUniqueId: (...args: any[]) => UniqueId;
   readonly maxConcurrent?: number;
   readonly maxWait?: number;
@@ -17,7 +16,7 @@ export class BulkheadConfigImpl {
   kind: BulkheadStrategy;
   getUniqueId: (...args: any[]) => UniqueId;
 
-  constructor({ name, maxConcurrent, maxWait, kind, getUniqueId }: BulkheadConfig) {
+  constructor(name: string, { maxConcurrent, maxWait, kind, getUniqueId }: BulkheadConfig) {
     this.name = name;
     this.maxConcurrent = maxConcurrent ?? 10;
     this.maxWait = maxWait ?? 1000;

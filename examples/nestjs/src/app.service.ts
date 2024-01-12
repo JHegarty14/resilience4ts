@@ -58,7 +58,10 @@ export class AppService {
     return;
   }
 
-  @Retry({ scheduleRetry: true, retryIn: 3000 })
+  @Retry({
+    maxAttempts: 3,
+    wait: 500,
+  })
   async postHello(body: any) {
     console.log('POST HELLO BODY', body);
     throw new Error('asdf');
@@ -69,12 +72,12 @@ export class AppService {
     return;
   }
 
-  // @ResiliencePipeline(new ResiliencePipeBuilder().with(PreconfiguredCache))
+  @ResiliencePipeline(new ResiliencePipeBuilder().with(PreconfiguredCache))
   async pipelineTest(one: number, two: number[]) {
     return two.map((t) => t * one);
   }
 
-  // @ResiliencePipeline(PreconfiguredCache)
+  @ResiliencePipeline(PreconfiguredCache)
   async pipelineTest2(one: number, two: number[]) {
     return two.map((t) => t * one);
   }

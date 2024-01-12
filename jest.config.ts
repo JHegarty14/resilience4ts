@@ -1,6 +1,4 @@
 import { join } from 'path';
-import { pathsToModuleNameMapper } from 'ts-jest';
-import { compilerOptions } from './tsconfig.json';
 import type { Config } from 'jest';
 process.env.TZ = 'UTC';
 
@@ -16,9 +14,6 @@ const baseConfig: Config = {
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   moduleFileExtensions: ['js', 'ts', 'json'],
   testEnvironment: 'node',
-  // moduleNameMapper: {
-  //   ...pathsToModuleNameMapper(compilerOptions.paths),
-  // },
 };
 
 const globalConfig: Config = {

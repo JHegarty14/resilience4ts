@@ -13,6 +13,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
+        redis-version: [7.x]
 
     steps:
       - name: Checkout
@@ -32,8 +33,10 @@ jobs:
       - name: Check Prettier
         run: |
           pnpm prettier
+      - name: Start Redis
+        uses: supercharge/redis-github-action@1.8.0
+          with:
+            redis-version: ${{ matrix.redis-version }}
       - name: Run Tests
         run: |
           npm i -g pnpm && pnpm lint && pnpm test:ci
-        env:
-          R4T_ENV: "test"

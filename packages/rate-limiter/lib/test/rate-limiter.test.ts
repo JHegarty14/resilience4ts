@@ -33,7 +33,7 @@ describe('RateLimiter', () => {
   it('should initialize rate limiter', async () => {
     const decorated = jest.fn().mockResolvedValue('OK');
 
-    rateLimiter = RateLimiter.of('test', {
+    rateLimiter = RateLimiter.of('test-init', {
       permitLimit: 1,
       window: 1000,
       scope: RateLimiterScope.Global,

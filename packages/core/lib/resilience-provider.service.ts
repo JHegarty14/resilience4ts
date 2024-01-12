@@ -34,7 +34,6 @@ export class ResilienceProviderService {
     configOrLogger: ResilienceConfig | string | BaseLogger | undefined,
     logger: BaseLogger = pino(),
   ): ResilienceProviderService {
-    console.log('CONFIG OR LOGGER', configOrLogger);
     if (ResilienceProviderService.instance) {
       return ResilienceProviderService.instance;
     }

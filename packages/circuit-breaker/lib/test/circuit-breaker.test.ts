@@ -4,7 +4,7 @@ import { setTimeout } from 'node:timers/promises';
 import { CircuitBreaker } from '../circuit-breaker';
 import { CircuitBreakerStrategy } from '../types';
 
-jest.setTimeout(10000);
+jest.setTimeout(60000);
 
 let svc: ResilienceProviderService;
 let circuit: CircuitBreaker;

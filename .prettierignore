@@ -1,2 +1,4 @@
 dist
 test-reports
+.github
+.husky

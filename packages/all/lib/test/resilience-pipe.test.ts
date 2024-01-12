@@ -41,38 +41,37 @@ describe('ResiliencePipe', () => {
   it('should initialize ResiliencePipe', async () => {
     const decorated = jest.fn().mockResolvedValue('OK');
 
-    const bulkhead = Bulkhead.of('test', {
-      name: 'test',
+    const bulkhead = Bulkhead.of('init-pipe-test', {
       getUniqueId: () => 'bulkhead_uid',
     });
 
-    const cache = Cache.of('test', {
+    const cache = Cache.of('init-pipe-test', {
       expiration: 10000,
       extractKey: () => 'cache_key',
     });
 
-    const circuit = CircuitBreaker.of('test', {
+    const circuit = CircuitBreaker.of('init-pipe-test', {
       strategy: CircuitBreakerStrategy.Percentage,
       threshold: 0.5,
     });
 
-    const lock = ConcurrentLock.of('test', {
+    const lock = ConcurrentLock.of('init-pipe-test', {
       withKey: () => 'test',
     });
 
-    const rateLimiter = RateLimiter.of('test', {
+    const rateLimiter = RateLimiter.of('init-pipe-test', {
       permitLimit: 1,
       window: 1000,
       scope: RateLimiterScope.Global,
     });
 
-    const retry = Retry.of('test', {
+    const retry = Retry.of('init-pipe-test', {
       maxAttempts: 3,
       maxInterval: 1000,
     });
 
-    const timeout = Timeout.of('test', {
-      timeout: 1000,
+    const timeout = Timeout.of('init-pipe-test', {
+      timeout: 7000,
     });
 
     pipe = ResiliencePipe.of(decorated)
@@ -93,7 +92,6 @@ describe('ResiliencePipe', () => {
     const decorated = jest.fn().mockResolvedValue('OK');
 
     const bulkhead = Bulkhead.of('bulkhead', {
-      name: 'bulkhead',
       getUniqueId: () => 'bulkhead_uid',
     });
 

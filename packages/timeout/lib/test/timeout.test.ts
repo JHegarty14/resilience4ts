@@ -15,10 +15,6 @@ describe('Timeout', () => {
   beforeAll(async () => {
     redisHost = '127.0.0.1';
     redisPort = 6379;
-  });
-
-  it('should initialize timeout', async () => {
-    console.log('IT PRINTS');
     svc = ResilienceProviderService.forRoot({
       resilience: {
         serviceName: 'r4t-test',
@@ -32,6 +28,9 @@ describe('Timeout', () => {
       },
     });
     await svc.start();
+  });
+
+  it('should initialize timeout', async () => {
     const listener = jest.fn();
     svc.emitter.addListener('r4t-timeout-ready', listener);
 

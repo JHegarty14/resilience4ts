@@ -11,9 +11,6 @@ describe('ResilienceProviderService', () => {
   beforeAll(async () => {
     redisHost = '127.0.0.1';
     redisPort = 6379;
-  });
-
-  it('should initialize ResilienceProviderService', async () => {
     const config: ResilienceConfig = {
       resilience: {
         serviceName: 'r4t-test',
@@ -26,10 +23,11 @@ describe('ResilienceProviderService', () => {
         redisPrefix: 'r4t-test',
       },
     };
-
     svc = ResilienceProviderService.forRoot(config);
     await svc.start();
+  });
 
+  it('should initialize ResilienceProviderService', async () => {
     expect(svc.cache).toBeDefined();
   });
 });

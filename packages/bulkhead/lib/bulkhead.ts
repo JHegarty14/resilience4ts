@@ -33,12 +33,7 @@ export class Bulkhead implements ResilienceDecorator {
 
   static of(name: string, config: BulkheadConfig): Bulkhead;
   static of(name: string, config: BulkheadConfig, tags?: Map<string, string>): Bulkhead {
-    return new Bulkhead(name, new BulkheadConfigImpl(config), tags || new Map());
-  }
-
-  static ofDefaults(name: string): Bulkhead {
-    const cfg = Bulkhead.getDefaultConfig();
-    return Bulkhead.of(name, cfg);
+    return new Bulkhead(name, new BulkheadConfigImpl(name, config), tags || new Map());
   }
 
   private async init(): Promise<void> {

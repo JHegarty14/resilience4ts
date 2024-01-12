@@ -31,7 +31,7 @@ describe('Retry', () => {
 
     const decorated: () => Promise<'OK'> = jest.fn().mockResolvedValue('OK');
 
-    retry = Retry.of('test', {
+    retry = Retry.of('test-1', {
       maxAttempts: 3,
     });
 
@@ -45,7 +45,7 @@ describe('Retry', () => {
   it('should retry on error', async () => {
     const decorated = jest.fn().mockRejectedValueOnce(new Error('test')).mockResolvedValue('OK');
 
-    retry = Retry.of('test', {
+    retry = Retry.of('test-2', {
       maxAttempts: 3,
       maxInterval: 1000,
     });

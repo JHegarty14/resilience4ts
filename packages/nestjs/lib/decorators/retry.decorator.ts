@@ -1,12 +1,6 @@
-import { Retry as RetryImpl, type RetryConfig as BaseRetryConfig } from '@forts/resilience4ts-all';
+import { Retry as RetryImpl, type RetryConfig } from '@forts/resilience4ts-all';
 import { TDecoratable } from '@forts/resilience4ts-core';
 import { MethodDecorator } from '../types';
-
-type InlineRetry = BaseRetryConfig;
-
-type ScheduledRetry = BaseRetryConfig & { scheduleRetry: true; retryIn: number };
-
-type RetryConfig = InlineRetry | ScheduledRetry;
 
 /**
  * Retry Decorator
