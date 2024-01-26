@@ -24,6 +24,12 @@ jobs:
         with:
           node-version: 18.x
           cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm i
+
+      - name: Install @changesets/cli
+        run: npm i @changesets/cli
       
       - name: Create Release Pull Request or Publish to npm
         id: changesets
