@@ -1,4 +1,8 @@
-import { ResilienceDecorator, ResilienceProviderService } from '@forts/resilience4ts-core';
+import {
+  type Decoratable,
+  type ResilienceDecorator,
+  ResilienceProviderService,
+} from '@forts/resilience4ts-core';
 import { CacheBusterConfig, CacheBusterConfigImpl } from './types';
 
 /**
@@ -42,7 +46,7 @@ export class CacheBuster implements ResilienceDecorator {
   /**
    * Decorates the given function with cache busting functionality.
    */
-  on<Args, Return>(fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
       let shouldInvalidate = false;
@@ -72,10 +76,7 @@ export class CacheBuster implements ResilienceDecorator {
    * Decorates the given function with cache busting functionality. This varient of the decorator is
    * useful when the decorated function is a method on a class.
    */
-  onBound<Args, Return>(
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown,
-  ) {
+  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
       let shouldInvalidate = false;

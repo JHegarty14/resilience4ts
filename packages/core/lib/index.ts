@@ -3,6 +3,7 @@ export * from './events';
 export * from './exceptions';
 export * from './logger';
 export type {
+  Decoratable,
   Duration,
   Json,
   PacketId,

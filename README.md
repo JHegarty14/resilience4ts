@@ -3,7 +3,8 @@
 `resilience4ts` is a suite of packages that provide ergonomic tools for building performant and safe distributed systems with Typescript. While there are other Typescript ports of Java libraries like Hystrix and resilience4j, or .NET packages like Polly, it is designed to be used specifically in highly-concurrent, distributed applications.
 
 <p align="center">
-	<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+	<a href="https://www.npmjs.com/forts/resilience4ts" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+  <a href="https://github.com/jhegarty14/resilience4ts> target="_blank"><img src="https://github.com/jhegarty14/resilience4ts/actions/workflows/ci-pipeline.yaml/badge.svg" alt="CI/CD Checks" /></a>
 </p>
 
 ## Description
@@ -16,6 +17,7 @@ Resilience4ts provides 10 core decorators for the following patterns:
 - `resilience4ts-circuitbreaker`: [Circuit Breaker pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker)
 - `resilience4ts-cache`: Provides distributed or request-scoped [Caching](https://learn.microsoft.com/en-us/azure/architecture/patterns/cache-aside)
 - `resilience4ts-concurrent-lock`: [Distributed Lock](https://www.dremio.com/wiki/distributed-locking/)
+- `resilience4ts-concurrent-queue`
 - `resilience4ts-hedge`: [Hedge pattern](https://www.linkedin.com/pulse/hedged-request-pattern-golang-harleen-mann/)
 - `resilience4ts-fallback`: [Fallback pattern](https://www.codecentric.de/wissens-hub/blog/resilience-design-patterns-retry-fallback-timeout-circuit-breaker)
 - `resilience4ts-rate-limiter`: [Rate-Limiting pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/rate-limiting-pattern)
@@ -39,7 +41,7 @@ $ npm install @forts/resilience4ts-bulkhead
 ```
 
 ```bash
-$ npm install @forts/resilience4ts-circuitbreaker
+$ npm install @forts/resilience4ts-circuit-breaker
 ```
 
 ```bash
@@ -48,6 +50,10 @@ $ npm install @forts/resilience4ts-cache
 
 ```bash
 $ npm install @forts/resilience4ts-concurrent-lock
+```
+
+```bash
+$ npm install @forts/resilience4ts-concurrent-queue
 ```
 
 ```bash
@@ -176,6 +182,20 @@ const result = await lock.on(async () => {
 });
 ```
 
+#### Concurrent Queue
+
+```typescript
+import { ConcurrentQueue } from '@forts/resilience4ts-concurrent-queue';
+
+const queue = ConcurrentQueue.of('my-queue', {
+  withKey: (...args: Parameters<MyDecoratedMethod>) => UniqueId,
+});
+
+const result = await queue.on(async () => {
+  // do something
+});
+```
+
 #### Hedge
 
 ```typescript
@@ -263,16 +283,11 @@ const result = await timeout.on(async () => {
 - [x] Rate Limiter implementation
 - [x] Retry implementation
 - [x] Timeout implementation
-- [ ] NestJS package
+- [x] NestJS package
   - [x] Decorators
-  - [x] r4t component discovery
-  - [ ] Register async clients with pipes/filters/interceptors/guards
-- [ ] Metrics/Telemetry Module
-  - [x] Create common IMetrics interface for integration into resilience packages
-  - [x] opentelemetry integration
-- [ ] documentation
-- [ ] quick start examples
-  - [ ] NestJS quickstart
+- [x] documentation
+- [x] quick start examples
+  - [x] NestJS quickstart
   - [ ] Express quickstart
 
 ### v1.0.0
@@ -283,7 +298,6 @@ const result = await timeout.on(async () => {
   - [ ] supports cancellable requests
 - [ ] DistributedContext module
 - [ ] Chaos Engineering module
-- [ ] ACL Resolver for Redis Clusters (execute Redis commands as Lua scripts or fall back to `node-redis` built-ins based on `@exec` / `@execSha` permissions)
 - [ ] Metrics
   - [ ] Datadog integration
   - [ ] MetricsController / Service for @forts/resilience4ts-nestjs

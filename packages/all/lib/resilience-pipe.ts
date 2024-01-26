@@ -4,6 +4,7 @@ import { CircuitBreaker } from '@forts/resilience4ts-circuit-breaker';
 import { ConcurrentLock } from '@forts/resilience4ts-concurrent-lock';
 import { ConcurrentQueue } from '@forts/resilience4ts-concurrent-queue';
 import {
+  Decoratable,
   InvalidArgumentException,
   ResilienceDecorator,
   ResilienceProviderService,
@@ -30,7 +31,7 @@ export class ResiliencePipe<Args, Return> {
   private static core: ResilienceProviderService;
   private constructor(
     private readonly name: string,
-    private fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
+    private fn: Decoratable<Args, Return>,
   ) {
     ResiliencePipe.core = ResilienceProviderService.forRoot();
   }
@@ -38,16 +39,14 @@ export class ResiliencePipe<Args, Return> {
   /**
    * Creates a new ResiliencePipe decorator.
    */
-  static of<Args, Return>(
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-  ): ResiliencePipe<Args, Return>;
+  static of<Args, Return>(fn: Decoratable<Args, Return>): ResiliencePipe<Args, Return>;
   static of<Args, Return>(
     name: string,
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
+    fn: Decoratable<Args, Return>,
   ): ResiliencePipe<Args, Return>;
   static of<Args, Return>(
-    nameOrFn: string | ((...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>),
-    fn?: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
+    nameOrFn: string | Decoratable<Args, Return>,
+    fn?: Decoratable<Args, Return>,
   ): ResiliencePipe<Args, Return> {
     if (typeof nameOrFn === 'string' && fn) {
       return new ResiliencePipe<Args, Return>(nameOrFn, fn);
@@ -303,9 +302,7 @@ export class ResiliencePipeBuilder {
   /**
    * Apply the pipeline to the given function.
    */
-  on<Args, Return>(
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-  ): ResiliencePipe<Args, Return> {
+  on<Args, Return>(fn: Decoratable<Args, Return>): ResiliencePipe<Args, Return> {
     const pipe = ResiliencePipe.of(fn);
     pipe.with(...this.decorators);
     return pipe;

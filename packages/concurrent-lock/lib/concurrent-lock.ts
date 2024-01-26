@@ -1,4 +1,4 @@
-import { ResilienceProviderService } from '@forts/resilience4ts-core';
+import { Decoratable, ResilienceProviderService } from '@forts/resilience4ts-core';
 import type { ResilienceDecorator } from '@forts/resilience4ts-core';
 import { AcquireLockException } from './exceptions';
 import { KeyBuilder } from './internal';
@@ -59,7 +59,7 @@ export class ConcurrentLock implements ResilienceDecorator {
   /**
    * Decorates the given function with a concurrent lock.
    */
-  on<Args, Return>(fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 
@@ -110,10 +110,7 @@ export class ConcurrentLock implements ResilienceDecorator {
    * Decorates the given function with a concurrent lock. This variant of the decorator is used
    * when the function is bound to a class.
    */
-  onBound<Args, Return>(
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown,
-  ) {
+  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 

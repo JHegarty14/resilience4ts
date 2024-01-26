@@ -26,7 +26,7 @@ const result = await bulkhead.on(async () => {
 ```typescript
 const bulkhead = Bulkhead.of('my-bulkhead', {
   getUniqueId: (...args: Parameters<MyDecoratedMethod>) => UniqueId, // Function that returns a unique id for the call from the decorated function args.
-  maxConcurrent?: number, // Maximum number of concurrent calls that are allowed to the decorated method.
+  maxConcurrent?: number, //
   maxWai?t: number, // Maximum duration in milliseconds that a call is allowed to wait for a permit to be issued.
   executionTimeout?: number, // Maximum duration in milliseconds that a call is allowed to wait for execution.
   kind?: BulkheadStrategy.Semaphore | BulkheadStrategy.ThreadPool, // Strategy to use for bulkhead.

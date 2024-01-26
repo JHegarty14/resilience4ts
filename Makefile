@@ -10,7 +10,7 @@ endif
 test: ci
 	pnpm test
 
-package: ci
+publish: ci
 	npm install -g npm-cli-login
 	npm-cli-login
 	pnpm build
@@ -21,10 +21,6 @@ prerelease: ci
 	npm-cli-login
 	pnpm build
 	pnpm --filter "./packages/**" publish --tag next
-
-prerelease_ci: 
-	pipenv sync --dev
-	pipenv run build_package -repo resilience4ts -code-dir $(CURDIR) --prerelease
 
 coverage:
 	npm i -g pnpm
