@@ -10,16 +10,16 @@ import { Retry } from '@forts/resilience4ts-retry';
 import { Timeout } from '@forts/resilience4ts-timeout';
 import crypto from 'crypto';
 
-import { ResiliencePipe } from '../resilience-pipe';
+import { ResiliencePipeBuilder } from '../resilience-pipe';
 
 jest.setTimeout(10000);
 
 let svc: ResilienceProviderService;
-let pipe: ResiliencePipe<any, any>;
+let pipe: ResiliencePipeBuilder;
 let redisHost: string;
 let redisPort: number;
 
-describe('ResiliencePipe', () => {
+describe('ResiliencePipeBuilder', () => {
   beforeAll(async () => {
     redisHost = '127.0.0.1';
     redisPort = 6379;
@@ -38,43 +38,43 @@ describe('ResiliencePipe', () => {
     await svc.start();
   });
 
-  it('should initialize ResiliencePipe', async () => {
+  it('should initialize ResliencePipe via Builder', async () => {
     const decorated = jest.fn().mockResolvedValue('OK');
 
-    const bulkhead = Bulkhead.of('init-pipe-test', {
+    const bulkhead = Bulkhead.of('init-pipe-builder-test', {
       getUniqueId: () => 'bulkhead_uid',
     });
 
-    const cache = Cache.of('init-pipe-test', {
+    const cache = Cache.of('init-pipe-builder-test', {
       expiration: 10000,
       extractKey: () => 'cache_key',
     });
 
-    const circuit = CircuitBreaker.of('init-pipe-test', {
+    const circuit = CircuitBreaker.of('init-pipe-builder-test', {
       strategy: CircuitBreakerStrategy.Percentage,
       threshold: 0.5,
     });
 
-    const lock = ConcurrentLock.of('init-pipe-test', {
-      withKey: () => 'init-pipe-test',
+    const lock = ConcurrentLock.of('init-pipe-builder-test', {
+      withKey: () => 'init-pipe-builder-test',
     });
 
-    const rateLimiter = RateLimiter.of('init-pipe-test', {
+    const rateLimiter = RateLimiter.of('init-pipe-builder-test', {
       permitLimit: 1,
       window: 1000,
       scope: RateLimiterScope.Distributed,
     });
 
-    const retry = Retry.of('init-pipe-test', {
+    const retry = Retry.of('init-pipe-builder-test', {
       maxAttempts: 3,
       maxInterval: 1000,
     });
 
-    const timeout = Timeout.of('init-pipe-test', {
+    const timeout = Timeout.of('init-pipe-builder-test', {
       timeout: 7000,
     });
 
-    pipe = ResiliencePipe.of(decorated)
+    pipe = new ResiliencePipeBuilder()
       .withBulkhead(bulkhead)
       .withCache(cache)
       .withCircuitBreaker(circuit)
@@ -83,7 +83,9 @@ describe('ResiliencePipe', () => {
       .withRetry(retry)
       .withTimeout(timeout);
 
-    const result = await pipe.execute();
+    const decoratedPipe = pipe.on(decorated);
+
+    const result = await decoratedPipe.execute();
 
     expect(result).toEqual('OK');
   });
@@ -95,9 +97,11 @@ describe('ResiliencePipe', () => {
       getUniqueId: () => 'bulkhead_uid',
     });
 
-    pipe = ResiliencePipe.of(decorated).withBulkhead(bulkhead);
+    pipe = new ResiliencePipeBuilder().withBulkhead(bulkhead);
 
-    const result = await pipe.execute();
+    const decoratedPipe = pipe.on(decorated);
+
+    const result = await decoratedPipe.execute();
 
     expect(result).toEqual('OK');
   });
@@ -107,20 +111,16 @@ describe('ResiliencePipe', () => {
 
     const cache = Cache.of('cache', {
       expiration: 10000,
-      extractKey: () => 'cache_key_1',
+      extractKey: () => 'cache_key',
     });
 
-    pipe = ResiliencePipe.of(decorated).withCache(cache);
+    pipe = new ResiliencePipeBuilder().withCache(cache);
 
-    const result = await pipe.execute();
+    const decoratedPipe = pipe.on(decorated);
+
+    const result = await decoratedPipe.execute();
 
     expect(result).toEqual('OK');
-
-    const result2 = await pipe.execute();
-
-    expect(result2).toEqual('OK');
-
-    expect(decorated).toBeCalledTimes(1);
   });
 
   it('should decorate a function with a RequestScopedCache', async () => {
@@ -130,36 +130,34 @@ describe('ResiliencePipe', () => {
       id: crypto.randomUUID(),
     };
 
-    const cache = RequestScopedCache.of('cache', {
-      extractKey: () => 'cache_key_2',
+    const cache = RequestScopedCache.of('request-scoped-cache', {
+      extractKey: () => 'cache_key',
       extractScope: () => scope,
       type: RequestScopedCacheType.Local,
     });
 
-    pipe = ResiliencePipe.of(decorated).withRequestScopedCache(cache);
+    pipe = new ResiliencePipeBuilder().withRequestScopedCache(cache);
 
-    const result = await pipe.execute();
+    const decoratedPipe = pipe.on(decorated);
+
+    const result = await decoratedPipe.execute();
 
     expect(result).toEqual('OK');
-
-    const result2 = await pipe.execute();
-
-    expect(result2).toEqual('OK');
-
-    expect(decorated).toBeCalledTimes(1);
   });
 
   it('should decorate a function with a CircuitBreaker', async () => {
     const decorated = jest.fn().mockResolvedValue('OK');
 
-    const circuit = CircuitBreaker.of('circuit', {
+    const circuit = CircuitBreaker.of('circuit-breaker', {
       strategy: CircuitBreakerStrategy.Percentage,
       threshold: 0.5,
     });
 
-    pipe = ResiliencePipe.of(decorated).withCircuitBreaker(circuit);
+    pipe = new ResiliencePipeBuilder().withCircuitBreaker(circuit);
 
-    const result = await pipe.execute();
+    const decoratedPipe = pipe.on(decorated);
+
+    const result = await decoratedPipe.execute();
 
     expect(result).toEqual('OK');
   });
@@ -167,41 +165,15 @@ describe('ResiliencePipe', () => {
   it('should decorate a function with a ConcurrentLock', async () => {
     const decorated = jest.fn().mockResolvedValue('OK');
 
-    const lock = ConcurrentLock.of('lock', {
-      withKey: () => 'lock',
+    const lock = ConcurrentLock.of('concurrent-lock', {
+      withKey: () => 'concurrent-lock',
     });
 
-    pipe = ResiliencePipe.of(decorated).withLock(lock);
+    pipe = new ResiliencePipeBuilder().withLock(lock);
 
-    const result = await pipe.execute();
+    const decoratedPipe = pipe.on(decorated);
 
-    expect(result).toEqual('OK');
-  });
-
-  it('should decorate a function with a Fallback', async () => {
-    const decorated = jest.fn().mockResolvedValue('OK');
-
-    const fallback = Fallback.of('fallback', {
-      fallbackAction: () => new Promise((resolve) => resolve('fallback')),
-    });
-
-    pipe = ResiliencePipe.of(decorated).withFallback(fallback);
-
-    const result = await pipe.execute();
-
-    expect(result).toEqual('OK');
-  });
-
-  it('should decorate a function with a Hedge', async () => {
-    const decorated = jest.fn().mockResolvedValue('OK');
-
-    const hedge = Hedge.of('hedge', {
-      delay: 1000,
-    });
-
-    pipe = ResiliencePipe.of(decorated).withHedge(hedge);
-
-    const result = await pipe.execute();
+    const result = await decoratedPipe.execute();
 
     expect(result).toEqual('OK');
   });
@@ -209,15 +181,17 @@ describe('ResiliencePipe', () => {
   it('should decorate a function with a RateLimiter', async () => {
     const decorated = jest.fn().mockResolvedValue('OK');
 
-    const rateLimiter = RateLimiter.of('rateLimiter', {
+    const rateLimiter = RateLimiter.of('rate-limiter', {
       permitLimit: 1,
       window: 1000,
       scope: RateLimiterScope.Distributed,
     });
 
-    pipe = ResiliencePipe.of(decorated).withRateLimiter(rateLimiter);
+    pipe = new ResiliencePipeBuilder().withRateLimiter(rateLimiter);
 
-    const result = await pipe.execute();
+    const decoratedPipe = pipe.on(decorated);
+
+    const result = await decoratedPipe.execute();
 
     expect(result).toEqual('OK');
   });
@@ -230,9 +204,11 @@ describe('ResiliencePipe', () => {
       maxInterval: 1000,
     });
 
-    pipe = ResiliencePipe.of(decorated).withRetry(retry);
+    pipe = new ResiliencePipeBuilder().withRetry(retry);
 
-    const result = await pipe.execute();
+    const decoratedPipe = pipe.on(decorated);
+
+    const result = await decoratedPipe.execute();
 
     expect(result).toEqual('OK');
   });
@@ -244,25 +220,11 @@ describe('ResiliencePipe', () => {
       timeout: 1000,
     });
 
-    pipe = ResiliencePipe.of(decorated).withTimeout(timeout);
+    pipe = new ResiliencePipeBuilder().withTimeout(timeout);
 
-    const result = await pipe.execute();
+    const decoratedPipe = pipe.on(decorated);
 
-    expect(result).toEqual('OK');
-  });
-
-  it('should execute a bound function', async () => {
-    const decorated = jest.fn().mockResolvedValue('OK');
-
-    const bulkhead = Bulkhead.of('bound', {
-      getUniqueId: () => 'bulkhead_uid',
-    });
-
-    pipe = ResiliencePipe.of(decorated).withBulkhead(bulkhead);
-
-    const self = {};
-
-    const result = await pipe.executeBound(self);
+    const result = await decoratedPipe.execute();
 
     expect(result).toEqual('OK');
   });

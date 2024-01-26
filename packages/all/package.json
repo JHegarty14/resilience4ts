@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "description": "All resilience4ts decorator packages in one, along with pipeline builder utilities",
   "main": "dist/index.js",
+  "author": "Jack Hegarty",
+  "license": "MIT",
+  "homepage": "https://jhegarty14.github.io/resilience4ts/",
   "files": [
     "dist"
   ],
@@ -10,7 +13,6 @@
     "test": "jest --passWithNoTests",
     "build": "tsc"
   },
-  "license": "UNLICENSED",
   "devDependencies": {
     "@types/jest": "^29.5.6",
     "@types/node": "^20.8.7"
