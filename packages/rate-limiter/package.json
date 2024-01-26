@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "description": "Rate limiter implementation for @forts/resilience4ts",
   "main": "dist/index.js",
+  "author": "Jack Hegarty",
+  "license": "MIT",
+  "homepage": "https://jhegarty14.github.io/resilience4ts/",
   "files": [
     "dist"
   ],
@@ -10,7 +13,6 @@
     "test": "jest --passWithNoTests",
     "build": "tsc"
   },
-  "license": "UNLICENSED",
   "dependencies": {
     "@forts/resilience4ts-core": "workspace:^",
     "oxide.ts": "^1.1.0"

@@ -56,4 +56,40 @@ describe('Retry', () => {
 
     expect(decorated).toBeCalledTimes(2);
   });
+
+  it('onBound - should initialize retry', async () => {
+    const listener = jest.fn();
+    svc.emitter.addListener('r4t-retry-ready', listener);
+
+    const decorated: () => Promise<'OK'> = jest.fn().mockResolvedValue('OK');
+
+    retry = Retry.of('test-1', {
+      maxAttempts: 3,
+    });
+
+    const self = {};
+
+    const result = await retry.onBound(decorated, self)();
+
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    expect(result).toBe('OK');
+  });
+
+  it('onBound - should retry on error', async () => {
+    const decorated = jest.fn().mockRejectedValueOnce(new Error('test')).mockResolvedValue('OK');
+
+    retry = Retry.of('test-2', {
+      maxAttempts: 3,
+      maxInterval: 1000,
+    });
+
+    const self = {};
+
+    const result = await retry.onBound(decorated, self)();
+
+    expect(result).toBe('OK');
+
+    expect(decorated).toBeCalledTimes(2);
+  });
 });

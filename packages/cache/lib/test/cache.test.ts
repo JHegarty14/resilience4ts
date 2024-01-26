@@ -91,4 +91,74 @@ describe('Cache', () => {
 
     expect(cachedValue).toBeNull();
   });
+
+  it('onBound - should initialize cache', async () => {
+    const listener = jest.fn();
+    svc.emitter.addListener('r4t-cache-ready', listener);
+
+    const decorated = jest.fn().mockResolvedValue('OK');
+
+    cache = Cache.of('test', {
+      expiration: 10000,
+      extractKey: () => 'cache_key',
+    });
+
+    const self = {};
+
+    const decoratedCache = cache.onBound(decorated, self);
+
+    const result = await decoratedCache();
+
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    expect(result).toEqual('OK');
+  });
+
+  it('onBound - should cache the result of the decorated function', async () => {
+    const listener = jest.fn();
+    svc.emitter.addListener('r4t-cache-ready', listener);
+
+    const decorated = jest.fn().mockResolvedValue('OK');
+
+    cache = Cache.of('test', {
+      expiration: 10000,
+      extractKey: () => 'cache_key',
+    });
+
+    const self = {};
+
+    const decoratedCache = cache.onBound(decorated, self);
+
+    const result = await decoratedCache();
+
+    const cachedValue = await svc.cache.get('cache_key');
+
+    expect(JSON.parse(cachedValue || '')).toEqual(result);
+  });
+
+  it('onBound - should cache value with expiration', async () => {
+    const listener = jest.fn();
+    svc.emitter.addListener('r4t-cache-ready', listener);
+
+    const decorated = jest.fn().mockResolvedValue('OK');
+
+    cache = Cache.of('test', {
+      expiration: 1,
+      extractKey: () => 'cache_key_2',
+    });
+
+    const self = {};
+
+    const decoratedCache = cache.onBound(decorated, self);
+
+    const result = await decoratedCache();
+
+    expect(result).toEqual('OK');
+
+    await setTimeout(2000);
+
+    const cachedValue = await svc.cache.get('cache_key_2');
+
+    expect(cachedValue).toBeNull();
+  });
 });

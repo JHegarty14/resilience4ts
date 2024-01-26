@@ -166,4 +166,162 @@ describe('ConcurrentLock', () => {
     expect(resolved.length).toBe(2);
     expect(rejected.length).toBe(0);
   });
+
+  it('onBound - should initialize lock', async () => {
+    svc = ResilienceProviderService.forRoot({
+      resilience: {
+        serviceName: 'r4t-test',
+      },
+      redis: {
+        redisHost,
+        redisPort,
+        redisPassword: '',
+        redisUser: '',
+        redisPrefix: 'r4t-test',
+      },
+    });
+    await svc.start();
+
+    const decorated = jest.fn().mockResolvedValue('OK');
+
+    lock = ConcurrentLock.of('test', {
+      withKey: () => 'test',
+    });
+
+    const self = {};
+
+    const result = await lock.onBound(decorated, self)();
+
+    expect(result).toBe('OK');
+  });
+
+  it('onBound - should reject on lock conflict', async () => {
+    svc = ResilienceProviderService.forRoot({
+      resilience: {
+        serviceName: 'r4t-test',
+      },
+      redis: {
+        redisHost,
+        redisPort,
+        redisPassword: '',
+        redisUser: '',
+        redisPrefix: 'r4t-test',
+      },
+    });
+    await svc.start();
+
+    const decorated = jest.fn().mockImplementation(async () => {
+      await setTimeout(2000);
+      return 'OK';
+    });
+
+    lock = ConcurrentLock.of('test', {
+      withKey: () => 'test',
+    });
+
+    const self = {};
+
+    const locked = lock.onBound(decorated, self);
+
+    const result = await Promise.allSettled([
+      locked(),
+      locked(),
+      locked(),
+      locked(),
+      locked(),
+      locked(),
+    ]);
+
+    const resolved = result.filter((r) => r.status === 'fulfilled') as PromiseFulfilledResult<
+      Result<string, ConcurrentLockException>
+    >[];
+    const rejected = result.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
+
+    expect(resolved.length).toBe(1);
+    expect(rejected.length).toBe(5);
+  });
+
+  it('onBound - should allow execution after lock expiration', async () => {
+    svc = ResilienceProviderService.forRoot({
+      resilience: {
+        serviceName: 'r4t-test',
+      },
+      redis: {
+        redisHost,
+        redisPort,
+        redisPassword: '',
+        redisUser: '',
+        redisPrefix: 'r4t-test',
+      },
+    });
+    await svc.start();
+
+    const decorated = jest.fn().mockImplementation(async () => {
+      await setTimeout(2000);
+      return 'OK';
+    });
+
+    lock = ConcurrentLock.of('test', {
+      withKey: () => 'test',
+    });
+
+    const self = {};
+
+    const locked = lock.onBound(decorated, self);
+
+    const first = await locked();
+
+    expect(first).toBe('OK');
+
+    await setTimeout(2000);
+
+    const second = await locked();
+
+    expect(second).toBe('OK');
+  });
+
+  it('onBound - should allow concurrent execution with different keys', async () => {
+    svc = ResilienceProviderService.forRoot({
+      resilience: {
+        serviceName: 'r4t-test',
+      },
+      redis: {
+        redisHost,
+        redisPort,
+        redisPassword: '',
+        redisUser: '',
+        redisPrefix: 'r4t-test',
+      },
+    });
+    await svc.start();
+
+    const decorated = jest.fn().mockImplementation(async () => {
+      await setTimeout(2000);
+      return 'OK';
+    });
+
+    const lock1 = ConcurrentLock.of('test', {
+      withKey: () => 'test',
+    });
+
+    const lock2 = ConcurrentLock.of('test-2', {
+      withKey: () => 'test-2',
+    });
+
+    const self = {};
+
+    const locked1 = lock1.onBound(decorated, self);
+    const locked2 = lock2.onBound(decorated, self);
+
+    const result = await Promise.allSettled([locked1(), locked2()]);
+
+    const resolved = result.filter((r) => r.status === 'fulfilled') as PromiseFulfilledResult<
+      Result<string, ConcurrentLockException>
+    >[];
+
+    const rejected = result.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
+
+    expect(resolved.length).toBe(2);
+    expect(rejected.length).toBe(0);
+  });
 });

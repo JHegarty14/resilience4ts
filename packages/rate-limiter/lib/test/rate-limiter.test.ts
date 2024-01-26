@@ -121,4 +121,102 @@ describe('RateLimiter', () => {
     expect(globalResults).toHaveLength(3);
     expect(reasons.every((r) => r instanceof RateLimitViolationException)).toBe(true);
   });
+
+  it('onBound - should initialize rate limiter', async () => {
+    const decorated = jest.fn().mockResolvedValue('OK');
+
+    rateLimiter = RateLimiter.of('test-init-onBound', {
+      permitLimit: 1,
+      window: 1000,
+      scope: RateLimiterScope.Distributed,
+    });
+
+    const self = {};
+
+    const result = await rateLimiter.onBound(decorated, self)();
+
+    expect(result).toBe('OK');
+  });
+
+  it('onBound - should enforce provided rate limit', async () => {
+    svc = ResilienceProviderService.forRoot({
+      resilience: {
+        serviceName: 'r4t-test',
+      },
+      redis: {
+        redisHost,
+        redisPort,
+        redisPassword: '',
+        redisUser: '',
+        redisPrefix: 'r4t-test',
+      },
+    });
+    await svc.start();
+
+    const decorated = jest.fn().mockResolvedValue('OK');
+
+    rateLimiter = RateLimiter.of('test-onBound-2', {
+      permitLimit: 1,
+      window: 1000,
+      scope: RateLimiterScope.Distributed,
+    });
+
+    const self = {};
+
+    const rateLimited = rateLimiter.onBound(decorated, self);
+
+    const result = await Promise.allSettled([rateLimited(), rateLimited(), rateLimited()]);
+
+    const allowed = result.filter((r) => r.status === 'fulfilled');
+    const rejected = result.filter((r) => r.status === 'rejected');
+
+    expect(allowed).toHaveLength(1);
+    expect(rejected).toHaveLength(2);
+  });
+
+  it('onBound - should differentiate between scopes', async () => {
+    const globalDecorated = jest.fn().mockResolvedValue('OK - GLOBAL');
+    const clientDecorated = jest.fn().mockResolvedValue('OK - CLIENT');
+
+    const globalLimiter = RateLimiter.of('test-onBound-3', {
+      permitLimit: 5,
+      window: 1000,
+      scope: RateLimiterScope.Distributed,
+    });
+
+    const clientLimiter = RateLimiter.of('test-onBound-3', {
+      permitLimit: 1,
+      window: 2000,
+      scope: RateLimiterScope.Instance,
+      requestIdentifier: () => 'same-client',
+    });
+
+    const self = {};
+
+    const globalLimited = globalLimiter.onBound(globalDecorated, self);
+    const clientLimited = clientLimiter.onBound(clientDecorated, self);
+
+    const result = await Promise.allSettled([
+      globalLimited(),
+      globalLimited(),
+      globalLimited(),
+      clientLimited(),
+      clientLimited(),
+      clientLimited(),
+    ]);
+
+    const allowed = result.filter((r) => r.status === 'fulfilled');
+    const rejected = result.filter((r) => r.status === 'rejected');
+
+    expect(allowed).toHaveLength(4);
+    expect(rejected).toHaveLength(2);
+
+    const globalResults = allowed.filter(
+      (r) => (r as PromiseFulfilledResult<string>).value === 'OK - GLOBAL',
+    );
+    const reasons = rejected.map((r) => (r as PromiseRejectedResult).reason);
+
+    expect(globalResults).toHaveLength(3);
+    expect(reasons.every((r) => r instanceof RateLimitViolationException)).toBe(true);
+  });
 });
