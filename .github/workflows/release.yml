@@ -25,9 +25,6 @@ jobs:
           node-version: 18.x
           cache: 'pnpm'
       
-      - name: Setup npmrc
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
-
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v1
