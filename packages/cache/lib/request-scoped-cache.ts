@@ -1,4 +1,8 @@
-import { type ResilienceDecorator, ResilienceProviderService } from '@forts/resilience4ts-core';
+import {
+  type ResilienceDecorator,
+  ResilienceProviderService,
+  Decoratable,
+} from '@forts/resilience4ts-core';
 import { RequestScopedCacheFactory } from './internal';
 import { type RequestScopedCacheConfig, RequestScopedCacheType } from './types';
 
@@ -50,7 +54,7 @@ export class RequestScopedCache implements ResilienceDecorator {
   /**
    * Decorates the given function with caching.
    */
-  on<Args, Return>(fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 
@@ -103,10 +107,7 @@ export class RequestScopedCache implements ResilienceDecorator {
    * Decorates the given function with caching. This variant of the decorator is
    * used when the function is bound to a class.
    */
-  onBound<Args, Return>(
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown,
-  ) {
+  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 

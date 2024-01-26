@@ -36,7 +36,7 @@ describe('RateLimiter', () => {
     rateLimiter = RateLimiter.of('test-init', {
       permitLimit: 1,
       window: 1000,
-      scope: RateLimiterScope.Global,
+      scope: RateLimiterScope.Distributed,
     });
 
     const result = await rateLimiter.on(decorated)();
@@ -64,7 +64,7 @@ describe('RateLimiter', () => {
     rateLimiter = RateLimiter.of('test-2', {
       permitLimit: 1,
       window: 1000,
-      scope: RateLimiterScope.Global,
+      scope: RateLimiterScope.Distributed,
     });
 
     const rateLimited = rateLimiter.on(decorated);
@@ -85,13 +85,13 @@ describe('RateLimiter', () => {
     const globalLimiter = RateLimiter.of('test-3', {
       permitLimit: 5,
       window: 1000,
-      scope: RateLimiterScope.Global,
+      scope: RateLimiterScope.Distributed,
     });
 
     const clientLimiter = RateLimiter.of('test-3', {
       permitLimit: 1,
       window: 2000,
-      scope: RateLimiterScope.Client,
+      scope: RateLimiterScope.Instance,
       requestIdentifier: () => 'same-client',
     });
 

@@ -1,5 +1,5 @@
 import { ResilienceProviderService } from '@forts/resilience4ts-core';
-import type { ResilienceDecorator } from '@forts/resilience4ts-core';
+import type { ResilienceDecorator, Decoratable } from '@forts/resilience4ts-core';
 import crypto from 'node:crypto';
 import { setTimeout } from 'timers/promises';
 import { CreateQueueLockException, QueueWaitExceeded } from './exceptions';
@@ -14,6 +14,13 @@ import { ConcurrentQueueConfig, ConcurrentQueueConfigImpl } from './types';
  * for concurrent execution of methods. It prevents the decorated method from executing
  * until the lock record created by the decorator is first in the queue. Requests will
  * be processed in the order their corresponding lock record was inserted into the queue.
+ *
+ * This locking mechanism is blocking! If a request is rejected, it will be retried until
+ * it is able to acquire the lock, or the configured maxAttempts is exceeded. It is important
+ * to consider the impact of this on the system. If the decorated method is called frequently,
+ * and the configured backoff is small, the queue may grow very large and cause a backlog of
+ * requests. If the configured backoff is large, the queue may be processed slowly and cause
+ * requests to timeout.
  *
  * If a method should reject duplicate concurrent requests with the same lock key, use
  * the ConcurrentLock decorator.
@@ -61,7 +68,7 @@ export class ConcurrentQueue implements ResilienceDecorator {
   /**
    * Decorates the given function with a concurrent lock queue.
    */
-  on<Args, Return>(fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 

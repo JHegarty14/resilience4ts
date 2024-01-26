@@ -21,7 +21,7 @@ export class BulkheadConfigImpl {
     this.maxConcurrent = maxConcurrent ?? 10;
     this.maxWait = maxWait ?? 1000;
     this.executionTimeout = 1000;
-    this.kind = kind ?? BulkheadStrategy.Semaphore;
+    this.kind = kind ?? BulkheadStrategy.Distributed;
     this.getUniqueId = getUniqueId;
   }
   withMaxConcurrent(maxConcurrent: number) {
@@ -54,6 +54,6 @@ export class BulkheadConfigImpl {
 }
 
 export enum BulkheadStrategy {
-  Semaphore,
-  Threadpool,
+  Distributed,
+  Instance,
 }

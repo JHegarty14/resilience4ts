@@ -3,8 +3,8 @@ export type RateLimiterConfig = {
   queueLimit?: number;
   window?: number;
 } & (
-  | { readonly scope: RateLimiterScope.Global }
-  | { readonly scope: RateLimiterScope.Client; requestIdentifier: (...args: any[]) => string }
+  | { readonly scope: RateLimiterScope.Distributed }
+  | { readonly scope: RateLimiterScope.Instance; requestIdentifier: (...args: any[]) => string }
 );
 
 export class RateLimiterConfigImpl {
@@ -20,11 +20,11 @@ export class RateLimiterConfigImpl {
     this.window = config.window ?? 1000 * 60;
     this.scope = config.scope;
     this.requestIdentifier =
-      config.scope === RateLimiterScope.Client ? config.requestIdentifier : undefined;
+      config.scope === RateLimiterScope.Instance ? config.requestIdentifier : undefined;
   }
 }
 
 export enum RateLimiterScope {
-  Global = 'global',
-  Client = 'client',
+  Distributed = 'distributed',
+  Instance = 'instance',
 }

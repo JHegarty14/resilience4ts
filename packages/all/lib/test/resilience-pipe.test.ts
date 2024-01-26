@@ -56,13 +56,13 @@ describe('ResiliencePipe', () => {
     });
 
     const lock = ConcurrentLock.of('init-pipe-test', {
-      withKey: () => 'test',
+      withKey: () => 'init-pipe-test',
     });
 
     const rateLimiter = RateLimiter.of('init-pipe-test', {
       permitLimit: 1,
       window: 1000,
-      scope: RateLimiterScope.Global,
+      scope: RateLimiterScope.Distributed,
     });
 
     const retry = Retry.of('init-pipe-test', {
@@ -212,7 +212,7 @@ describe('ResiliencePipe', () => {
     const rateLimiter = RateLimiter.of('rateLimiter', {
       permitLimit: 1,
       window: 1000,
-      scope: RateLimiterScope.Global,
+      scope: RateLimiterScope.Distributed,
     });
 
     pipe = ResiliencePipe.of(decorated).withRateLimiter(rateLimiter);

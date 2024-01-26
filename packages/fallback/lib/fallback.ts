@@ -1,4 +1,4 @@
-import { ResilienceProviderService } from '@forts/resilience4ts-core';
+import { Decoratable, ResilienceProviderService } from '@forts/resilience4ts-core';
 import type { Json, ResilienceDecorator } from '@forts/resilience4ts-core';
 import { FallbackAction, FallbackConfig, FallbackConfigImpl } from './types';
 
@@ -43,7 +43,7 @@ export class Fallback<Action extends Json> implements ResilienceDecorator {
   /**
    * Decorates the given function with fallback.
    */
-  on<Args, Return>(fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 
@@ -70,10 +70,7 @@ export class Fallback<Action extends Json> implements ResilienceDecorator {
    * Decorates the given function with fallback. This varient of the decorator is
    * useful when the decorated function is a method on a class.
    */
-  onBound<Args, Return>(
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown,
-  ) {
+  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 

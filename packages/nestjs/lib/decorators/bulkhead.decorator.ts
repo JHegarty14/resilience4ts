@@ -24,7 +24,7 @@ export const Bulkhead = (options: BulkheadConfig) => {
       return descriptor;
     }
 
-    const name = `${target.constructor.name}.${descriptor.value.name}`;
+    const name = `${target.constructor.name}.${propertyKey}`;
     const bulkhead = BulkheadImpl.of(name, options);
     const originalMethod = descriptor.value;
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {

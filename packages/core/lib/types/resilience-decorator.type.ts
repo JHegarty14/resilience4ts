@@ -1,14 +1,13 @@
+import type { Decoratable } from './decoratable.type';
+
 export type ResilienceDecorator = {
-  on<Args, Return>(
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    ...rest: any[]
-  ): (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>;
+  on<Args, Return>(fn: Decoratable<Args, Return>, ...rest: any[]): Decoratable<Args, Return>;
 
   onBound<Args, Return>(
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
+    fn: Decoratable<Args, Return>,
     self: unknown,
     ...rest: any[]
-  ): (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>;
+  ): Decoratable<Args, Return>;
 
   getName(): string;
 };

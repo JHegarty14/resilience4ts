@@ -7,10 +7,10 @@ import { KeyBuilder } from './key-builder';
 export class RateLimiterStrategyFactory {
   static resolve(cache: RedisClientInstance, config: RateLimiterConfigImpl) {
     switch (config.scope) {
-      case RateLimiterScope.Client:
-        return new RateLimiterClientStrategy(cache, config);
-      case RateLimiterScope.Global:
-        return new RateLimiterGlobalStrategy(cache, config);
+      case RateLimiterScope.Instance:
+        return new InstanceScopedRateLimiterStrategy(cache, config);
+      case RateLimiterScope.Distributed:
+        return new DistributedRateLimiterStrategy(cache, config);
       default:
         assertUnreachable(config.scope);
     }
@@ -76,7 +76,7 @@ export abstract class BaseRateLimiterStrategy {
   }
 }
 
-export class RateLimiterClientStrategy extends BaseRateLimiterStrategy {
+export class InstanceScopedRateLimiterStrategy extends BaseRateLimiterStrategy {
   constructor(
     readonly cache: RedisClientInstance,
     readonly config: RateLimiterConfigImpl,
@@ -89,7 +89,7 @@ export class RateLimiterClientStrategy extends BaseRateLimiterStrategy {
   }
 }
 
-export class RateLimiterGlobalStrategy extends BaseRateLimiterStrategy {
+export class DistributedRateLimiterStrategy extends BaseRateLimiterStrategy {
   constructor(
     readonly cache: RedisClientInstance,
     readonly config: RateLimiterConfigImpl,

@@ -1,4 +1,4 @@
-import { ResilienceProviderService, SafePromise } from '@forts/resilience4ts-core';
+import { Decoratable, ResilienceProviderService, SafePromise } from '@forts/resilience4ts-core';
 import type { ResilienceDecorator } from '@forts/resilience4ts-core';
 import { HedgeExecutor, KeyBuilder } from './internal';
 import { type HedgeConfig, HedgeConfigImpl, type HedgedResult } from './types';
@@ -48,7 +48,7 @@ export class Hedge implements ResilienceDecorator {
   /**
    * Decorates the given function with a hedge contingency.
    */
-  on<Args, Return>(fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 
@@ -102,10 +102,7 @@ export class Hedge implements ResilienceDecorator {
    * Decorates the given function with a hedge contingency. This variant of the
    * decorator is used when the function is bound to a class.
    */
-  onBound<Args, Return>(
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown,
-  ) {
+  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 

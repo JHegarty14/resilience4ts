@@ -5,7 +5,6 @@ export type RetryConfig = {
   readonly wait?: number;
   readonly maxAttempts?: number;
   readonly whitelist?: Array<Error>;
-  readonly scheduleRetry?: boolean;
   readonly retryMode?: RetryBackoff;
   readonly maxInterval?: number;
 
@@ -28,7 +27,6 @@ export class RetryConfigImpl {
   wait: number;
   maxAttempts: number;
   whitelist: Error[];
-  scheduled: boolean;
   retryMode: RetryBackoff;
   maxInterval: number;
   validateResult: ValidateResultFn;
@@ -38,7 +36,6 @@ export class RetryConfigImpl {
     this.wait = config.wait ?? this.defaultWait;
     this.maxAttempts = config.maxAttempts ?? this.defaultMaxAttempts;
     this.whitelist = config.whitelist ?? [];
-    this.scheduled = config.scheduleRetry ?? false;
     this.retryMode = config.retryMode ?? this.defaultRetryBackoff;
     this.maxInterval = config.maxInterval ?? this.defaultMaxInterval;
 
@@ -62,11 +59,6 @@ export class RetryConfigImpl {
 
   withWhitelist(whitelist: Array<Error>): RetryConfigImpl {
     this.whitelist = whitelist;
-    return this;
-  }
-
-  withScheduledRetry(): RetryConfigImpl {
-    this.scheduled = true;
     return this;
   }
 

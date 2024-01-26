@@ -1,4 +1,8 @@
-import { type ResilienceDecorator, ResilienceProviderService } from '@forts/resilience4ts-core';
+import {
+  type ResilienceDecorator,
+  ResilienceProviderService,
+  Decoratable,
+} from '@forts/resilience4ts-core';
 import { BulkheadFullException } from './exceptions';
 import { BaseBulkheadStrategy, BulkheadStrategyFactory, KeyBuilder } from './internal';
 import { type BulkheadConfig, BulkheadConfigImpl } from './types';
@@ -56,7 +60,7 @@ export class Bulkhead implements ResilienceDecorator {
   /**
    * Decorates the given function with a bulkhead.
    */
-  on<Args, Return>(fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 
@@ -83,10 +87,7 @@ export class Bulkhead implements ResilienceDecorator {
    * Decorates the given function with a bulkhead. This varient of the decorator is
    * useful when the decorated function is a method on a class.
    */
-  onBound<Args, Return>(
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown,
-  ) {
+  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 

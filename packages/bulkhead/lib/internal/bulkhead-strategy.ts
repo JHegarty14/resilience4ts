@@ -5,10 +5,10 @@ import { KeyBuilder } from './key-builder';
 export class BulkheadStrategyFactory {
   static resolve(cache: RedisClientInstance, config: BulkheadConfigImpl) {
     switch (config.kind) {
-      case BulkheadStrategy.Threadpool:
-        return new ThreadPoolBulkheadStrategy(cache, config);
-      case BulkheadStrategy.Semaphore:
-        return new SemaphoreBulkheadStrategy(cache, config);
+      case BulkheadStrategy.Instance:
+        return new InstanceScopedBulkheadStrategy(cache, config);
+      case BulkheadStrategy.Distributed:
+        return new DistributedBulkheadStrategy(cache, config);
       default:
         throw new Error(`Unknown bulkhead strategy: ${config.kind}`);
     }
@@ -83,7 +83,7 @@ export abstract class BaseBulkheadStrategy {
   }
 }
 
-export class ThreadPoolBulkheadStrategy extends BaseBulkheadStrategy {
+export class InstanceScopedBulkheadStrategy extends BaseBulkheadStrategy {
   private readonly threadPoolUid = crypto.randomUUID();
 
   constructor(cache: RedisClientInstance, config: BulkheadConfigImpl) {
@@ -123,7 +123,7 @@ export class ThreadPoolBulkheadStrategy extends BaseBulkheadStrategy {
   }
 }
 
-export class SemaphoreBulkheadStrategy extends BaseBulkheadStrategy {
+export class DistributedBulkheadStrategy extends BaseBulkheadStrategy {
   constructor(cache: RedisClientInstance, config: BulkheadConfigImpl) {
     super(cache, config);
   }
