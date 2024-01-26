@@ -27,9 +27,6 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm i
-
-      - name: Install @changesets/cli
-        run: npm i @changesets/cli
       
       - name: Create Release Pull Request or Publish to npm
         id: changesets
