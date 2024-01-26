@@ -1,0 +1,6 @@
+[book]
+authors = ["JHegarty14"]
+language = "en"
+multilingual = false
+src = "src"
+title = "resilience4ts"
