@@ -1,6 +1,6 @@
 {
   "name": "@forts/resilience4ts-timeout",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Timeout decorators for @forts/resilience4ts",
   "main": "dist/index.js",
   "author": "Jack Hegarty",
