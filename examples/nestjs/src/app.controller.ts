@@ -10,9 +10,7 @@ export class AppController {
 
   @Get()
   async getHello() {
-    const haeh: any = await this.appService.getHello({ id: 'asdf' });
-    console.log('HAEH', haeh);
-    return haeh;
+    return await this.appService.getHello({ id: 'asdf' });
   }
 
   @Post()
