@@ -53,11 +53,6 @@ export class AppService {
     }).on(this.appGateway.getHello)(args);
   }
 
-  async receiveHello(args: unknown) {
-    console.log('RECEIVED', args);
-    return;
-  }
-
   @Retry({
     maxAttempts: 3,
     wait: 500,
@@ -65,11 +60,6 @@ export class AppService {
   async postHello(body: any) {
     console.log('POST HELLO BODY', body);
     throw new Error('asdf');
-  }
-
-  async receivePostHello(args: unknown) {
-    console.log('RECEIVED', args);
-    return;
   }
 
   @ResiliencePipeline(new ResiliencePipeBuilder().with(PreconfiguredCache))

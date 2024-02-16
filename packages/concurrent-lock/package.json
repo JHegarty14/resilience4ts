@@ -6,6 +6,11 @@
   "author": "Jack Hegarty",
   "license": "MIT",
   "homepage": "https://jhegarty14.github.io/resilience4ts/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jhegarty14/resilience4ts.git",
+    "directory": "packages/concurrent-lock"
+  },
   "files": [
     "dist"
   ],
@@ -14,8 +19,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@forts/resilience4ts-core": "workspace:^",
-    "oxide.ts": "^1.1.0"
+    "@forts/resilience4ts-core": "workspace:^"
   },
   "devDependencies": {
     "@types/jest": "^29.5.6",

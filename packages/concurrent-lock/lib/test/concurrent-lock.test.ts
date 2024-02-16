@@ -2,7 +2,6 @@ import { ResilienceProviderService } from '@forts/resilience4ts-core';
 import { ConcurrentLock } from '../concurrent-lock';
 import { setTimeout } from 'timers/promises';
 import { ConcurrentLockException } from '../types';
-import { Result } from 'oxide.ts';
 
 jest.setTimeout(10000);
 
@@ -78,9 +77,9 @@ describe('ConcurrentLock', () => {
       locked(),
     ]);
 
-    const resolved = result.filter((r) => r.status === 'fulfilled') as PromiseFulfilledResult<
-      Result<string, ConcurrentLockException>
-    >[];
+    const resolved = result.filter(
+      (r) => r.status === 'fulfilled',
+    ) as PromiseFulfilledResult<string>[];
     const rejected = result.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
 
     expect(resolved.length).toBe(1);
@@ -157,9 +156,9 @@ describe('ConcurrentLock', () => {
 
     const result = await Promise.allSettled([locked1(), locked2()]);
 
-    const resolved = result.filter((r) => r.status === 'fulfilled') as PromiseFulfilledResult<
-      Result<string, ConcurrentLockException>
-    >[];
+    const resolved = result.filter(
+      (r) => r.status === 'fulfilled',
+    ) as PromiseFulfilledResult<string>[];
 
     const rejected = result.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
 
@@ -232,9 +231,9 @@ describe('ConcurrentLock', () => {
       locked(),
     ]);
 
-    const resolved = result.filter((r) => r.status === 'fulfilled') as PromiseFulfilledResult<
-      Result<string, ConcurrentLockException>
-    >[];
+    const resolved = result.filter(
+      (r) => r.status === 'fulfilled',
+    ) as PromiseFulfilledResult<string>[];
     const rejected = result.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
 
     expect(resolved.length).toBe(1);
@@ -315,9 +314,9 @@ describe('ConcurrentLock', () => {
 
     const result = await Promise.allSettled([locked1(), locked2()]);
 
-    const resolved = result.filter((r) => r.status === 'fulfilled') as PromiseFulfilledResult<
-      Result<string, ConcurrentLockException>
-    >[];
+    const resolved = result.filter(
+      (r) => r.status === 'fulfilled',
+    ) as PromiseFulfilledResult<string>[];
 
     const rejected = result.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
 

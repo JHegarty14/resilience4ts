@@ -1,8 +1,13 @@
 {
   "name": "@forts/resilience4ts",
-  "version": "0.0.0",
-  "description": "Shared workspace",
-  "private": true,
+  "version": "0.0.1",
+  "description": "Distributed-first fault tolerance tooling for TypeScript",
+  "homepage": "https://jhegarty14.github.io/resilience4ts/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jhegarty14/resilience4ts.git"
+  },
+
   "scripts": {
     "build": "turbo run build",
     "format": "prettier --write .",
@@ -24,8 +29,8 @@
     "npm": "forbidden, install pnpm",
     "pnpm": ">= 8.0.0"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Jack Hegarty",
+  "license": "MIT",
   "devDependencies": {
     "@changesets/cli": "2.22.0",
     "@jest/types": "^29.5.0",

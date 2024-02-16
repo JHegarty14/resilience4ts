@@ -6,6 +6,11 @@
   "author": "Jack Hegarty",
   "license": "MIT",
   "homepage": "https://jhegarty14.github.io/resilience4ts/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jhegarty14/resilience4ts.git",
+    "directory": "packages/retry"
+  },
   "files": [
     "dist"
   ],
