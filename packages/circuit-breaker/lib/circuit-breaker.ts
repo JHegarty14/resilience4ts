@@ -63,6 +63,7 @@ export class CircuitBreaker implements ResilienceDecorator {
 
   private async init(): Promise<void> {
     await CircuitBreaker.core.start();
+    // const r = await CircuitBreaker.core.cacheFacade.registerResilienceComponent(KeyBuilder.circuitRegistryKey(), this.name);
     const registered = await CircuitBreaker.core.cache.zScore(
       KeyBuilder.circuitRegistryKey(),
       this.name,

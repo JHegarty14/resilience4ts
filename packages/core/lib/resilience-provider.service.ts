@@ -1,12 +1,15 @@
 import EventEmitter from 'events';
 import { pino, BaseLogger } from 'pino';
+import { ICacheFacade } from './cache/cache-facade.interface';
 import { PersistenceFactory, RedisClientInstance } from './cache/cache.service';
+import { RedisCmdFacade } from './cache/redis-cmd.facade';
 import { ResilienceConfig } from './types';
 import { ConfigLoader, ResilienceKeyBuilder } from './util';
 
 export class ResilienceProviderService {
   static instance?: ResilienceProviderService;
   cache!: RedisClientInstance;
+  cacheFacade!: ICacheFacade;
   readonly logger: BaseLogger;
 
   private initialized: Promise<void>;
@@ -64,6 +67,7 @@ export class ResilienceProviderService {
 
   private async init(): Promise<void> {
     this.cache = await this._cache;
+    this.cacheFacade = new RedisCmdFacade(this.cache, this.logger);
   }
 
   async start() {
