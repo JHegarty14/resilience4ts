@@ -2,6 +2,7 @@ import type { BaseLogger } from 'pino';
 import {
   ConnectionTimeoutError,
   createClient,
+  defineScript,
   type RedisClientOptions,
   type RedisClientType,
   type RedisFunctions,
@@ -9,14 +10,21 @@ import {
   type RedisScripts,
 } from 'redis';
 import type { ResilienceRedisConfig } from '../types';
+import { ScriptLoader } from './commands/script-loader';
 
-export type RedisClientInstance = RedisClientType<RedisModules, RedisFunctions, RedisScripts>;
+export type RedisClientInstance = RedisClientType<RedisModules, RedisFunctions, LuaScripts>;
 
 let client: RedisClientInstance;
+
+enum CommandStrategy {
+  Redis,
+  Lua,
+}
 
 export async function PersistenceFactory(
   config: ResilienceRedisConfig,
   logger?: BaseLogger,
+  type = CommandStrategy.Redis,
 ): Promise<RedisClientInstance> {
   function handleConnectionError(error: Error & { code?: any }): Error | null {
     if (error instanceof ConnectionTimeoutError) {
@@ -54,7 +62,7 @@ export async function PersistenceFactory(
       throw new Error('Missing Cache host. CacheClient disabled');
     }
 
-    const options: RedisClientOptions = {
+    const options: RedisClientOptions<RedisModules, RedisFunctions, LuaScripts> = {
       url: `redis://${config.redisHost}:${config.redisPort}`,
       socket: {
         reconnectStrategy: retryStrategy,
@@ -74,6 +82,20 @@ export async function PersistenceFactory(
       };
     }
 
+    if (type === CommandStrategy.Lua) {
+      const scripts = await new ScriptLoader().loadScripts();
+      options.scripts = scripts.reduce<LuaScripts>((acc, script) => {
+        acc[script.name] = defineScript({
+          SCRIPT: script.options.lua,
+          NUMBER_OF_KEYS: script.options.numberOfKeys,
+          transformArguments(...args: any[]) {
+            return args;
+          },
+        });
+        return acc;
+      }, {} as LuaScripts);
+    }
+
     client = createClient(options);
     client.on('error', (err) => {
       logger?.error(err, `Redis Client Error: ${JSON.stringify(config)}`);
@@ -83,3 +105,13 @@ export async function PersistenceFactory(
 
   return client;
 }
+
+type LuaFunctionNames = 'extendLock' | 'releaseLock';
+
+type LuaScripts = RedisScripts & {
+  [name in LuaFunctionNames]: {
+    SCRIPT: string;
+    NUMBER_OF_KEYS: number;
+    transformArguments(...args: any[]): any[];
+  };
+};

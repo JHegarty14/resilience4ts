@@ -28,6 +28,8 @@
     "toml": "^3.0.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.6"
+    "@types/jest": "^29.5.6",
+    "fast-glob": "^3.3.2",
+    "minimatch": "^9.0.4"
   }
 }

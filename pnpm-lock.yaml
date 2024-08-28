@@ -298,6 +298,12 @@ importers:
       '@types/jest':
         specifier: ^29.5.6
         version: 29.5.11
+      fast-glob:
+        specifier: ^3.3.2
+        version: 3.3.2
+      minimatch:
+        specifier: ^9.0.4
+        version: 9.0.4
 
   packages/fallback:
     dependencies:
@@ -5232,6 +5238,13 @@ packages:
 
   /minimatch@9.0.3:
     resolution: {integrity: sha512-RHiac9mvaRw0x3AYRgDC1CxAP7HTcNrrECeA8YYJeWnpo+2Q5CegtZjaotWTWxDG3UeGA1coE05iH1mPjT/2mg==}
+    engines: {node: '>=16 || 14 >=14.17'}
+    dependencies:
+      brace-expansion: 2.0.1
+    dev: true
+
+  /minimatch@9.0.4:
+    resolution: {integrity: sha512-KqWh+VchfxcMNRAJjj2tnsSJdNbHsVgnkBhTNrW7AjVo6OvLtxw8zfT9oLw1JSohlFzJ8jCoTgaoXvJ+kHt6fw==}
     engines: {node: '>=16 || 14 >=14.17'}
     dependencies:
       brace-expansion: 2.0.1
