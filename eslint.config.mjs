@@ -27,6 +27,7 @@ export default [{
     plugins: {
         "@typescript-eslint": typescriptEslint,
     },
+    files: ["**/*.ts", "**/*.tsx", "**/*.js"],
 
     languageOptions: {
         globals: {

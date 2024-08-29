@@ -61,7 +61,7 @@ export abstract class BaseBulkheadStrategy {
       }
 
       return true;
-    } catch (err: unknown) {
+    } catch {
       return false;
     }
   }
