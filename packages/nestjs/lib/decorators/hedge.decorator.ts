@@ -23,10 +23,9 @@ export const Hedge = (options: HedgeConfig) => {
       return descriptor;
     }
 
-    const originalMethod = descriptor.value;
     const hedge = HedgeImpl.of(propertyKey, options);
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return hedge.onBound(originalMethod, this)(...args);
+      return hedge.onBound(descriptor.value as T, this)(...args);
     } as T;
 
     return descriptor;

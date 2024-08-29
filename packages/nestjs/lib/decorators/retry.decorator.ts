@@ -1,6 +1,8 @@
 import { Retry as RetryImpl, type RetryConfig } from '@forts/resilience4ts-all';
 import { TDecoratable } from '@forts/resilience4ts-core';
 import { MethodDecorator } from '../types';
+import { extendArrayMetadata } from '../utils';
+import { RESILIENCE_METRICS } from '../constants/metadata.constants';
 
 /**
  * Retry Decorator
@@ -25,6 +27,8 @@ export function Retry(timesOrOptions: number | RetryConfig): MethodDecorator {
       return descriptor;
     }
 
+    const existingMetrics = Reflect.getMetadata(RESILIENCE_METRICS, descriptor.value) ?? [];
+
     const options: RetryConfig =
       typeof timesOrOptions === 'number'
         ? {
@@ -32,12 +36,13 @@ export function Retry(timesOrOptions: number | RetryConfig): MethodDecorator {
           }
         : timesOrOptions;
 
-    const originalMethod = descriptor.value;
     const retry = RetryImpl.of(propertyKey, options);
 
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return retry.onBound(originalMethod, this)(...args);
+      return retry.onBound(descriptor.value as T, this)(...args);
     } as T;
+
+    extendArrayMetadata(RESILIENCE_METRICS, [...existingMetrics, retry], descriptor.value);
 
     return descriptor;
   };

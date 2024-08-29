@@ -83,12 +83,12 @@ export class ConcurrentLock implements ResilienceDecorator {
           ConcurrentLock.core.emitter.emit('r4t-lock-acquisition-failed', this.name, this.tags);
           throw new AcquireLockException(this.name, uniqueId);
         }
-      } catch (err: unknown) {
+      } catch {
         ConcurrentLock.core.emitter.emit('r4t-lock-acquisition-failed', this.name, this.tags);
         throw new AcquireLockException(this.name, uniqueId);
       }
 
-      let heartbeat: NodeJS.Timer | null = null;
+      let heartbeat: NodeJS.Timeout | null = null;
       if (this.config.extensible !== false) {
         heartbeat = setInterval(async () => {
           const ttl = Date.now() + duration - drift;
@@ -134,12 +134,12 @@ export class ConcurrentLock implements ResilienceDecorator {
           ConcurrentLock.core.emitter.emit('r4t-lock-acquisition-failed', this.name, this.tags);
           throw new AcquireLockException(this.name, uniqueId);
         }
-      } catch (err: unknown) {
+      } catch {
         ConcurrentLock.core.emitter.emit('r4t-lock-acquisition-failed', this.name, this.tags);
         throw new AcquireLockException(this.name, uniqueId);
       }
 
-      let heartbeat: NodeJS.Timer | null = null;
+      let heartbeat: NodeJS.Timeout | null = null;
       if (this.config.extensible !== false) {
         heartbeat = setInterval(async () => {
           const ttl = Date.now() + duration - drift;

@@ -1,5 +1,7 @@
 import { Fallback as FallbackImpl, type FallbackConfig } from '@forts/resilience4ts-all';
 import { TDecoratable } from '@forts/resilience4ts-core';
+import { RESILIENCE_METRICS } from '../constants/metadata.constants';
+import { extendArrayMetadata } from '../utils';
 
 /**
  * Fallback Decorator
@@ -22,11 +24,14 @@ export const Fallback = (options: FallbackConfig) => {
       return descriptor;
     }
 
-    const originalMethod = descriptor.value;
+    const existingMetrics = Reflect.getMetadata(RESILIENCE_METRICS, descriptor.value) ?? [];
+
     const fallback = FallbackImpl.of(propertyKey, options);
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return fallback.onBound(originalMethod, this)(...args);
+      return fallback.onBound(descriptor.value as T, this)(...args);
     } as T;
+
+    extendArrayMetadata(RESILIENCE_METRICS, [...existingMetrics, fallback], descriptor.value);
 
     return descriptor;
   };

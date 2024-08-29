@@ -6,6 +6,7 @@ import {
 import { BulkheadFullException } from './exceptions';
 import { BaseBulkheadStrategy, BulkheadStrategyFactory, KeyBuilder } from './internal';
 import { type BulkheadConfig, BulkheadConfigImpl } from './types';
+import { BulkheadMetricsImpl } from './internal/bulkhead-metrics';
 
 /**
  * Bulkhead Decorator
@@ -28,6 +29,7 @@ export class Bulkhead implements ResilienceDecorator {
     private readonly tags: Map<string, string>,
   ) {
     Bulkhead.core = ResilienceProviderService.forRoot();
+    this.Metrics = new BulkheadMetricsImpl(config, Bulkhead.core.config.metrics?.captureInterval);
     this.initialized = this.init();
   }
 
@@ -113,4 +115,6 @@ export class Bulkhead implements ResilienceDecorator {
   getName() {
     return this.name;
   }
+
+  readonly Metrics: BulkheadMetricsImpl;
 }

@@ -20,6 +20,7 @@ import {
   recordToCircuitBucket,
 } from './types/circuit-breaker-model.type';
 import { KeyBuilder } from './internal';
+import { CircuitBreakerMetricsImpl } from './internal/circuit-breaker-metrics';
 
 /**
  * CircuitBreaker Decorator
@@ -46,6 +47,10 @@ export class CircuitBreaker implements ResilienceDecorator {
   ) {
     CircuitBreaker.core = ResilienceProviderService.forRoot();
     this.strategy = CircuitBreakerStrategyFactory.resolve(config);
+    this.Metrics = new CircuitBreakerMetricsImpl(
+      config,
+      CircuitBreaker.core.config.metrics?.captureInterval,
+    );
     this.initialized = this.init();
   }
 
@@ -317,4 +322,6 @@ export class CircuitBreaker implements ResilienceDecorator {
   getName() {
     return this.name;
   }
+
+  readonly Metrics: CircuitBreakerMetricsImpl;
 }

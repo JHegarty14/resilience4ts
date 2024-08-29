@@ -2,6 +2,7 @@ export * from './cache';
 export * from './events';
 export * from './exceptions';
 export * from './logger';
+export * from './metrics';
 export type {
   Decoratable,
   Duration,

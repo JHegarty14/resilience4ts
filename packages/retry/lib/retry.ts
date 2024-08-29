@@ -12,6 +12,7 @@ import { Err, Ok, Result, Option } from 'oxide.ts';
 import { MaxRetriesExceeded, RetryValidationException } from './exceptions';
 import { Backoff } from './backoff';
 import type { ResilienceDecorator } from '@forts/resilience4ts-core';
+import { RetryMetricsImpl } from './internal/retry-metrics';
 
 /**
  * Retry Decorator
@@ -34,6 +35,7 @@ export class Retry implements ResilienceDecorator {
     private readonly tags: Map<string, string>, // TODO: will be used for metrics
   ) {
     Retry.core = ResilienceProviderService.forRoot();
+    this.Metrics = new RetryMetricsImpl(Retry.core.config.metrics?.captureInterval);
     this.initialized = this.init();
   }
 
@@ -198,4 +200,6 @@ export class Retry implements ResilienceDecorator {
   getName() {
     return this.name;
   }
+
+  readonly Metrics: RetryMetricsImpl;
 }

@@ -1,5 +1,7 @@
 import { Timeout as TimeoutImpl, type TimeoutConfig } from '@forts/resilience4ts-all';
 import { TDecoratable } from '@forts/resilience4ts-core';
+import { extendArrayMetadata } from '../utils';
+import { RESILIENCE_METRICS } from '../constants/metadata.constants';
 
 /**
  * Timeout Decorator
@@ -19,12 +21,15 @@ export const Timeout = (options: TimeoutConfig) => {
       return descriptor;
     }
 
-    const originalMethod = descriptor.value;
+    const existingMetrics = Reflect.getMetadata(RESILIENCE_METRICS, descriptor.value) ?? [];
+
     const timeout = TimeoutImpl.of(propertyKey, options);
 
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return timeout.onBound(originalMethod, this)(...args);
+      return timeout.onBound(descriptor.value as T, this)(...args);
     } as T;
+
+    extendArrayMetadata(RESILIENCE_METRICS, [...existingMetrics, timeout], descriptor.value);
 
     return descriptor;
   };

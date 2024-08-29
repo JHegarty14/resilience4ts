@@ -1,5 +1,13 @@
 export * from './resilience-pipe';
-
+export {
+  SUCCESSFUL,
+  FAILED,
+  SLOW_FAILED,
+  SLOW_SUCCESSFUL,
+  TIMEOUT,
+  NOT_PERMITTED,
+  OPERATION_CANCELLED,
+} from './internal';
 export * from '@forts/resilience4ts-bulkhead';
 export * from '@forts/resilience4ts-cache';
 export * from '@forts/resilience4ts-circuit-breaker';

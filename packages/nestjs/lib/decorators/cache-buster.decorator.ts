@@ -20,11 +20,10 @@ export function CacheBuster(config: CacheBusterConfig) {
       return descriptor;
     }
 
-    const originalMethod = descriptor.value;
     const cacheBuster = CacheBusterImpl.of(propertyKey, config);
 
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return cacheBuster.onBound(originalMethod, this)(...args);
+      return cacheBuster.onBound(descriptor.value as T, this)(...args);
     } as T;
 
     return descriptor;
