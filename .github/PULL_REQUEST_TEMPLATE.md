@@ -11,6 +11,7 @@
 - [ ] @forts/resilience4ts-fallback
 - [ ] @forts/resilience4ts-hedge
 - [ ] @forts/resilience4ts-nestjs
+- [ ] @forts/resilience4ts-open-telemetry
 - [ ] @forts/resilience4ts-rate-limiter
 - [ ] @forts/resilience4ts-retry
 - [ ] @forts/resilience4ts-timeout
