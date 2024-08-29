@@ -16,6 +16,7 @@
     "lint": "eslint packages --quiet --ext js,jsx,ts,tsx --ignore-pattern **/*.test.* ",
     "lint:fix": "eslint packages --ext .js,.jsx,.ts,.tsx --fix",
     "prettier": "prettier --check ./packages",
+    "prettier:fix": "prettier --write ./packages",
     "preinstall": "npx only-allow pnpm",
     "typecheck": "pnpm tsc -p ./tsconfig.lint.json --noemit --pretty",
     "prepare": "is-ci || husky install",
