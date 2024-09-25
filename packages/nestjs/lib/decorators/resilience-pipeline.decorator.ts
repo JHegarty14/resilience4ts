@@ -30,7 +30,6 @@ export function ResiliencePipeline(
     if (!descriptor.value) {
       return descriptor;
     }
-
     const originalMethod = descriptor.value;
     if (pipeOrDecorators[0] instanceof Pipeline) {
       const pipe = pipeOrDecorators[0] as PipelineBuilder;

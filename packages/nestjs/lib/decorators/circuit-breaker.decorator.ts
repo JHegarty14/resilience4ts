@@ -3,6 +3,8 @@ import {
   type CircuitBreakerConfig,
 } from '@forts/resilience4ts-all';
 import { TDecoratable } from '@forts/resilience4ts-core';
+import { extendArrayMetadata } from '../utils';
+import { RESILIENCE_METRICS } from '../constants/metadata.constants';
 
 /**
  * CircuitBreaker Decorator
@@ -26,12 +28,15 @@ export const CircuitBreaker = (options: CircuitBreakerConfig) => {
       return descriptor;
     }
 
-    const originalMethod = descriptor.value;
-    const circuit = CircuitBreakerConfigImpl.of(propertyKey, options);
+    const existingMetrics = Reflect.getMetadata(RESILIENCE_METRICS, descriptor.value) ?? [];
 
+    const circuit = CircuitBreakerConfigImpl.of(propertyKey, options);
+    const originalMethod = descriptor.value;
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
       return circuit.onBound(originalMethod, this)(...args);
     } as T;
+
+    extendArrayMetadata(RESILIENCE_METRICS, [...existingMetrics, circuit], descriptor.value);
 
     return descriptor;
   };

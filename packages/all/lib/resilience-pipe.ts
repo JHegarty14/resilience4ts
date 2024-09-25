@@ -5,6 +5,7 @@ import { ConcurrentLock } from '@forts/resilience4ts-concurrent-lock';
 import { ConcurrentQueue } from '@forts/resilience4ts-concurrent-queue';
 import {
   Decoratable,
+  DefaultMetricsConfig,
   InvalidArgumentException,
   ResilienceDecorator,
   ResilienceProviderService,
@@ -15,6 +16,7 @@ import { Hedge } from '@forts/resilience4ts-hedge';
 import { RateLimiter } from '@forts/resilience4ts-rate-limiter';
 import { Retry } from '@forts/resilience4ts-retry';
 import { Timeout } from '@forts/resilience4ts-timeout';
+import { ResiliencePipeMetrics } from './internal';
 
 /**
  * ResiliencePipe Decorator
@@ -34,6 +36,7 @@ export class ResiliencePipe<Args, Return> {
     private fn: Decoratable<Args, Return>,
   ) {
     ResiliencePipe.core = ResilienceProviderService.forRoot();
+    this.Metrics = new ResiliencePipeMetrics(DefaultMetricsConfig);
   }
 
   /**
@@ -179,6 +182,8 @@ export class ResiliencePipe<Args, Return> {
   getName() {
     return this.name;
   }
+
+  readonly Metrics: ResiliencePipeMetrics;
 }
 
 /**

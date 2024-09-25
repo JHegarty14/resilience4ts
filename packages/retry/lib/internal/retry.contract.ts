@@ -21,11 +21,9 @@ export type ResolveReturn<TReturn, Strict extends 0 | 1 | undefined> = `${Strict
     : Result<Awaited<TReturn>, unknown>
   : Awaited<TReturn>;
 
-export type ExtractRetryReturn<TReturn> = Awaited<TReturn> extends UnknownMonad<
-  infer TOk,
-  infer TErr
->
-  ? TErr extends void
-    ? NonNullable<TOk>
-    : TOk
-  : Awaited<TReturn>;
+export type ExtractRetryReturn<TReturn> =
+  Awaited<TReturn> extends UnknownMonad<infer TOk, infer TErr>
+    ? TErr extends void
+      ? NonNullable<TOk>
+      : TOk
+    : Awaited<TReturn>;

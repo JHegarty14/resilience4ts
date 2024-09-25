@@ -26,9 +26,8 @@ export const ConcurrentLock = (options: ConcurrentLockConfig) => {
       return descriptor;
     }
 
-    const originalMethod = descriptor.value;
     const lock = ConcurrentLockImpl.of(propertyKey, options);
-
+    const originalMethod = descriptor.value;
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
       return lock.onBound(originalMethod, this)(...args);
     } as T;

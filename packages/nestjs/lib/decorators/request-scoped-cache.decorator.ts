@@ -25,9 +25,8 @@ export const RequestScopedCache = (options: RequestScopedCacheConfig) => {
       return descriptor;
     }
 
-    const originalMethod = descriptor.value;
     const cache = RequestScopedCacheImpl.of(propertyKey, options);
-
+    const originalMethod = descriptor.value;
     descriptor.value = function (this: unknown, args: Parameters<T>) {
       return cache.onBound(originalMethod, this)(...args);
     } as T;

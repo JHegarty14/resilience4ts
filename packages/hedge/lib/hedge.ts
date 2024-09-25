@@ -3,6 +3,7 @@ import type { ResilienceDecorator } from '@forts/resilience4ts-core';
 import { HedgeExecutor, KeyBuilder } from './internal';
 import { type HedgeConfig, HedgeConfigImpl, type HedgedResult } from './types';
 import { HedgeEvent, HedgeEventType } from './event';
+import { HedgeMetrics } from './internal/hedge-metrics';
 
 /**
  * Hedge Decorator
@@ -28,6 +29,7 @@ export class Hedge implements ResilienceDecorator {
   ) {
     this.hedgeExecutor = HedgeExecutor.new().corePoolSize(config.maxHedgedAttempts).build();
     Hedge.core = ResilienceProviderService.forRoot();
+    this.Metrics = new HedgeMetrics(config, Hedge.core.config.metrics?.captureInterval);
     this.initialized = this.init();
   }
 
@@ -186,4 +188,6 @@ export class Hedge implements ResilienceDecorator {
   getName() {
     return this.name;
   }
+
+  readonly Metrics: HedgeMetrics;
 }

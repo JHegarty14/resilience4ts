@@ -15,3 +15,13 @@ redisPrefix = "local"
 maxConnectionAttempts = 100
 maxBackoff = 3000
 maxIncrBackoff = 500
+
+[metrics]
+captureInterval = 5000
+exposeMetricsDashboard = false
+minimumNumberOfCalls = 10
+slowCallDurationThreshold = 1_000
+
+[metrics.dataRetentionPolicy]
+metricsBucketWindow = "1s"
+retentionWindow = "1d"

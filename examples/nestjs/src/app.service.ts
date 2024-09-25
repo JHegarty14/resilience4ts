@@ -47,10 +47,7 @@ export class AppService {
     threshold: 0.2,
   })
   async getHello(args: Record<'id', string>) {
-    return await CircuitBreakerImpl.of('gateway.call', {
-      strategy: CircuitBreakerStrategy.Percentage,
-      threshold: 0.2,
-    }).on(this.appGateway.getHello)(args);
+    return await this.appGateway.getHello(args);
   }
 
   @Retry({
@@ -58,7 +55,6 @@ export class AppService {
     wait: 500,
   })
   async postHello(body: any) {
-    console.log('POST HELLO BODY', body);
     throw new Error('asdf');
   }
 
