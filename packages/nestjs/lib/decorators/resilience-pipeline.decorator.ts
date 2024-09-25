@@ -30,15 +30,15 @@ export function ResiliencePipeline(
     if (!descriptor.value) {
       return descriptor;
     }
-
+    const originalMethod = descriptor.value;
     if (pipeOrDecorators[0] instanceof Pipeline) {
       const pipe = pipeOrDecorators[0] as PipelineBuilder;
 
       descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-        return pipe.on(descriptor.value as T).executeBound(this, args);
+        return pipe.on(originalMethod).executeBound(this, args);
       } as T;
     } else {
-      const pipe = Pipeline.of(propertyKey, descriptor.value as T);
+      const pipe = Pipeline.of(propertyKey, originalMethod);
 
       descriptor.value = function (this: unknown, ...args: Parameters<T>) {
         return pipe.with(...(pipeOrDecorators as ResilienceDecorator[])).executeBound(this, args);

@@ -28,10 +28,11 @@ export const Bulkhead = (options: BulkheadConfig) => {
 
     const existingMetrics = Reflect.getMetadata(RESILIENCE_METRICS, descriptor.value) ?? [];
 
+    const originalMethod = descriptor.value;
     const name = `${target.constructor.name}.${propertyKey}`;
     const bulkhead = BulkheadImpl.of(name, options);
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return bulkhead.onBound(descriptor.value as T, this)(...args);
+      return bulkhead.onBound(originalMethod as T, this)(...args);
     } as T;
 
     extendArrayMetadata(RESILIENCE_METRICS, [...existingMetrics, bulkhead], descriptor.value);

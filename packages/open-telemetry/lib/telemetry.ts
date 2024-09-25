@@ -1,8 +1,8 @@
-import { metrics } from '@opentelemetry/api';
+import { diag, DiagConsoleLogger, DiagLogLevel, metrics } from '@opentelemetry/api';
 import {
-  ConsoleMetricExporter,
   MeterProvider,
   PeriodicExportingMetricReader,
+  PushMetricExporter,
 } from '@opentelemetry/sdk-metrics';
 import { Resource } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
@@ -26,6 +26,7 @@ import {
   Retry,
   Timeout,
 } from '@forts/resilience4ts-all';
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 
 /**
  * OpenTelemetry Provider
@@ -36,6 +37,11 @@ import {
  */
 export class OpenTelemetryProvider extends AbstractTelemetryProvider {
   private static instance: OpenTelemetryProvider;
+
+  constructor(private readonly exporter?: PushMetricExporter) {
+    super();
+  }
+
   forRoot(config: ResilienceConfig) {
     if (OpenTelemetryProvider.instance) {
       return OpenTelemetryProvider.instance;
@@ -43,28 +49,28 @@ export class OpenTelemetryProvider extends AbstractTelemetryProvider {
 
     OpenTelemetryProvider.instance = new OpenTelemetryProvider();
 
+    diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.ALL);
     const resource = Resource.default().merge(
       new Resource({
         [ATTR_SERVICE_NAME]: config.resilience.serviceName,
         [ATTR_SERVICE_VERSION]: config.resilience.serviceVersion,
       }),
     );
-
     const metricReader = new PeriodicExportingMetricReader({
-      exporter: new ConsoleMetricExporter(),
-
-      // Default is 60000ms (60 seconds)
+      exporter:
+        this.exporter ??
+        new OTLPMetricExporter({
+          url: 'http://localhost:4318/v1/metrics',
+        }),
       exportIntervalMillis: config.metrics?.captureInterval ?? 60000,
     });
 
-    const myServiceMeterProvider = new MeterProvider({
-      resource: resource,
+    const meterProvider = new MeterProvider({
+      resource,
+      readers: [metricReader],
     });
 
-    myServiceMeterProvider.addMetricReader(metricReader);
-
-    // Set this MeterProvider to be global to the app being instrumented.
-    metrics.setGlobalMeterProvider(myServiceMeterProvider);
+    metrics.setGlobalMeterProvider(meterProvider);
 
     return OpenTelemetryProvider.instance;
   }

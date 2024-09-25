@@ -5,9 +5,10 @@ import { AppController } from './app.controller';
 import { AppGateway } from './app.gateway';
 import { AppService } from './app.service';
 import { AllExceptionsFilter } from './exception.filter';
+import { OpenTelemetryProvider } from '@forts/resilience4ts-open-telemetry';
 
 @Module({
-  imports: [ResilienceModule.forRoot()],
+  imports: [ResilienceModule.forRootWithMetrics(new OpenTelemetryProvider())],
   controllers: [AppController],
   providers: [
     {

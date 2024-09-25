@@ -1,6 +1,7 @@
 import { RedisClientInstance, type UniqueId } from '@forts/resilience4ts-core';
 import { BulkheadConfigImpl, BulkheadStrategy } from '../types';
 import { KeyBuilder } from './key-builder';
+import { BulkheadMetricsImpl } from './bulkhead-metrics';
 
 export class BulkheadStrategyFactory {
   static resolve(cache: RedisClientInstance, config: BulkheadConfigImpl) {
@@ -17,6 +18,7 @@ export class BulkheadStrategyFactory {
 
 export abstract class BaseBulkheadStrategy {
   protected stopping = false;
+  protected metrics!: BulkheadMetricsImpl;
   constructor(
     protected readonly cache: RedisClientInstance,
     protected readonly config: BulkheadConfigImpl,
@@ -52,6 +54,16 @@ export abstract class BaseBulkheadStrategy {
       const pipelineRes = await pipeline.execAsPipeline();
       const rank = pipelineRes[pipelineRes.length - 1]?.toString();
       const rankInt = rank ? parseInt(rank) : undefined;
+      const permitsClaimed = pipelineRes[pipelineRes.length - 2]?.toString();
+      const permitsClaimedInt = permitsClaimed ? parseInt(permitsClaimed) : 0;
+
+      if (rankInt !== undefined) {
+        try {
+          this.metrics.onCounterValueResolved(permitsClaimedInt);
+        } catch {
+          // pass
+        }
+      }
 
       if (rankInt === undefined || rankInt >= this.config.maxConcurrent) {
         pipeline.zRem(key, uniqId);
@@ -81,6 +93,11 @@ export abstract class BaseBulkheadStrategy {
       now,
     );
   }
+
+  withMetrics(metrics: BulkheadMetricsImpl) {
+    this.metrics = metrics;
+    return this;
+  }
 }
 
 export class InstanceScopedBulkheadStrategy extends BaseBulkheadStrategy {
@@ -101,7 +118,7 @@ export class InstanceScopedBulkheadStrategy extends BaseBulkheadStrategy {
       );
 
       if (acquired) {
-        return acquired;
+        return true;
       }
     }
 

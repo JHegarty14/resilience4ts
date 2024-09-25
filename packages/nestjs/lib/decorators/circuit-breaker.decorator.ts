@@ -31,9 +31,9 @@ export const CircuitBreaker = (options: CircuitBreakerConfig) => {
     const existingMetrics = Reflect.getMetadata(RESILIENCE_METRICS, descriptor.value) ?? [];
 
     const circuit = CircuitBreakerConfigImpl.of(propertyKey, options);
-
+    const originalMethod = descriptor.value;
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return circuit.onBound(descriptor.value as T, this)(...args);
+      return circuit.onBound(originalMethod, this)(...args);
     } as T;
 
     extendArrayMetadata(RESILIENCE_METRICS, [...existingMetrics, circuit], descriptor.value);

@@ -40,7 +40,10 @@ export class RateLimiter implements ResilienceDecorator {
   private async init(): Promise<void> {
     await RateLimiter.core.start();
 
-    this.strategy = RateLimiterStrategyFactory.resolve(RateLimiter.core.cache, this.config);
+    this.strategy = RateLimiterStrategyFactory.resolve(
+      RateLimiter.core.cache,
+      this.config,
+    ).withMetrics(this.Metrics);
   }
 
   /**

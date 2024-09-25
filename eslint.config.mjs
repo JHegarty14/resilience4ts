@@ -22,6 +22,7 @@ export default [{
         "**/jest.config.js",
         "**/jest.config.ts",
         "**/template",
+        "**/examples/**/*"
     ],
 }, ...compat.extends("eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"), {
     plugins: {

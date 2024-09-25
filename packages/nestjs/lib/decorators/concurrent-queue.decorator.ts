@@ -34,9 +34,9 @@ export const ConcurrentQueue = (options: ConcurrentQueueConfig) => {
     }
 
     const lock = ConcurrentQueueImpl.of(propertyKey, options);
-
+    const originalMethod = descriptor.value;
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return lock.onBound(descriptor.value as T, this)(...args);
+      return lock.onBound(originalMethod, this)(...args);
     } as T;
 
     return descriptor;

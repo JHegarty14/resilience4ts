@@ -37,9 +37,9 @@ export function Retry(timesOrOptions: number | RetryConfig): MethodDecorator {
         : timesOrOptions;
 
     const retry = RetryImpl.of(propertyKey, options);
-
+    const originalMethod = descriptor.value;
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return retry.onBound(descriptor.value as T, this)(...args);
+      return retry.onBound(originalMethod, this)(...args);
     } as T;
 
     extendArrayMetadata(RESILIENCE_METRICS, [...existingMetrics, retry], descriptor.value);

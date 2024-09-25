@@ -27,11 +27,12 @@ export const Fallback = (options: FallbackConfig) => {
     const existingMetrics = Reflect.getMetadata(RESILIENCE_METRICS, descriptor.value) ?? [];
 
     const fallback = FallbackImpl.of(propertyKey, options);
+    const originalMethod = descriptor.value;
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return fallback.onBound(descriptor.value as T, this)(...args);
+      return fallback.onBound(originalMethod, this)(...args);
     } as T;
 
-    extendArrayMetadata(RESILIENCE_METRICS, [...existingMetrics, fallback], descriptor.value);
+    extendArrayMetadata(RESILIENCE_METRICS, [...existingMetrics], descriptor.value);
 
     return descriptor;
   };

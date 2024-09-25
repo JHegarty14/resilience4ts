@@ -21,9 +21,9 @@ export const Cache = (options: CacheConfig) => {
     }
 
     const cache = CacheImpl.of(propertyKey, options);
-
+    const originalMethod = descriptor.value;
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return cache.onBound(descriptor.value as T, this)(...args);
+      return cache.onBound(originalMethod, this)(...args);
     } as T;
 
     return descriptor;

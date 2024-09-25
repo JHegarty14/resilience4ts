@@ -52,7 +52,9 @@ export class Bulkhead implements ResilienceDecorator {
       await Bulkhead.core.cache.sAdd(KeyBuilder.bulkheadRegistryKey(), [this.name]);
     }
 
-    this.strategy = BulkheadStrategyFactory.resolve(Bulkhead.core.cache, this.config);
+    this.strategy = BulkheadStrategyFactory.resolve(Bulkhead.core.cache, this.config).withMetrics(
+      this.Metrics,
+    );
 
     Bulkhead.core.emitter.emit('r4t-bulkhead-ready', this.name, this.tags);
 

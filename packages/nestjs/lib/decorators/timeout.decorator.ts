@@ -24,9 +24,9 @@ export const Timeout = (options: TimeoutConfig) => {
     const existingMetrics = Reflect.getMetadata(RESILIENCE_METRICS, descriptor.value) ?? [];
 
     const timeout = TimeoutImpl.of(propertyKey, options);
-
+    const originalMethod = descriptor.value;
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return timeout.onBound(descriptor.value as T, this)(...args);
+      return timeout.onBound(originalMethod, this)(...args);
     } as T;
 
     extendArrayMetadata(RESILIENCE_METRICS, [...existingMetrics, timeout], descriptor.value);

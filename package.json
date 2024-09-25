@@ -17,6 +17,7 @@
     "lint:fix": "eslint packages --fix",
     "prettier": "prettier --check ./packages",
     "prettier:fix": "prettier --write ./packages",
+    "prettier:fix:examples": "prettier --write ./examples",
     "preinstall": "npx only-allow pnpm",
     "typecheck": "pnpm tsc -p ./tsconfig.lint.json --noemit --pretty",
     "prepare": "is-ci || husky install",

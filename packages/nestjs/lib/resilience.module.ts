@@ -82,7 +82,7 @@ export class ResilienceModule implements OnModuleInit {
         },
         {
           provide: Tokens.ResilienceTelemetryProvider,
-          useValue: () => metricsProvider.forRoot(configImpl),
+          useFactory: () => metricsProvider.forRoot(configImpl),
         },
       ],
       exports: [
