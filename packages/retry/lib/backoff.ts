@@ -24,9 +24,7 @@ export class Backoff {
       case RetryBackoff.Immediate:
         backoff = 0;
         break;
-      case RetryBackoff.Scheduled:
-        backoff = -1;
-        break;
+
       default:
         assertUnreachable(strategy);
     }
@@ -47,7 +45,7 @@ export class Backoff {
       .reduce<number>((acc, curr, idx) => acc + curr * (idx + 1), 0);
     const max = Math.min(calculatedMax, MAX_DURATION);
 
-    if (wait <= 0 && strategy !== RetryBackoff.Immediate && strategy !== RetryBackoff.Scheduled) {
+    if (wait <= 0 && strategy !== RetryBackoff.Immediate) {
       throw new InvalidBackoffException(wait, strategy);
     }
 

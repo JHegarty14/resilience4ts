@@ -1,16 +1,30 @@
 import { Guard } from '@forts/resilience4ts-core';
-import { RetryException, ScheduledRetryException } from './retry-exception.type';
+import { RetryException } from './retry-exception.type';
+import { Bucketable } from '@forts/resilience4ts-core/lib/types';
+
+export enum RetryStrategy {
+   Budgeted,
+   Default,
+}
 
 export type RetryConfig = {
   readonly wait?: number;
   readonly maxAttempts?: number;
-  readonly whitelist?: Array<Error>;
   readonly retryMode?: RetryBackoff;
   readonly maxInterval?: number;
 
-  readonly validateResult?: ValidateResultFn;
   readonly onRuntimeError?: OnRuntimeExceptionFn;
-};
+  readonly until?: ValidateResultFn;
+} & (
+  | {
+    readonly retryStrategy: RetryStrategy.Budgeted;
+    readonly windowBudget: number;
+    readonly windowSize: number;
+  }
+  | {
+    readonly retryStrategy?: RetryStrategy.Default;
+  }
+);
 
 export class RetryConfigImpl {
   private readonly defaultWait: number = 500;
@@ -18,29 +32,29 @@ export class RetryConfigImpl {
   private readonly defaultMaxInterval: number = 60000;
   private readonly defaultRetryBackoff = RetryBackoff.Linear;
 
-  private readonly defaultValidateResult = <T>(result: T) => {
-    return !(result instanceof Error) || this.whitelist.every((e) => e.name !== result.name);
-  };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private readonly defaultOnRuntimeException = (_: ScheduledRetryException) => void 0;
-
+  private readonly defaultOnRuntimeException = (_: RetryException) => void 0;
+  currentAttempt = 0;
   wait: number;
   maxAttempts: number;
-  whitelist: Error[];
   retryMode: RetryBackoff;
+  retryStrategy: RetryStrategy;
+  windowBudget: number;
+  windowSize: number;
   maxInterval: number;
-  validateResult: ValidateResultFn;
   onRuntimeError: OnRuntimeExceptionFn;
+  until?: ValidateResultFn;
 
   constructor(config: RetryConfig) {
     this.wait = config.wait ?? this.defaultWait;
     this.maxAttempts = config.maxAttempts ?? this.defaultMaxAttempts;
-    this.whitelist = config.whitelist ?? [];
     this.retryMode = config.retryMode ?? this.defaultRetryBackoff;
     this.maxInterval = config.maxInterval ?? this.defaultMaxInterval;
-
-    this.validateResult = config.validateResult ?? this.defaultValidateResult;
+    this.retryStrategy = config.retryStrategy ?? RetryStrategy.Default;
+    this.windowBudget = config.retryStrategy === RetryStrategy.Budgeted ? config.windowBudget : 0;
+    this.windowSize = config.retryStrategy === RetryStrategy.Budgeted ? config.windowSize : 0;
     this.onRuntimeError = config.onRuntimeError ?? this.defaultOnRuntimeException;
+    this.until = config.until;
   }
 
   withMaxAttempts(maxAttempts: number): RetryConfigImpl {
@@ -57,13 +71,8 @@ export class RetryConfigImpl {
     return this;
   }
 
-  withWhitelist(whitelist: Array<Error>): RetryConfigImpl {
-    this.whitelist = whitelist;
-    return this;
-  }
-
   onResult(fn: ValidateResultFn): RetryConfigImpl {
-    this.validateResult = fn;
+    this.until = fn;
     return this;
   }
 
@@ -77,14 +86,9 @@ export class RetryConfigImpl {
   }
 }
 
-export type RetryExecutionOptions = {
-  readonly backoff?: RetryBackoff;
-  readonly validationMode?: RetryValidationMode | undefined;
-};
-
 type ValidateResultFn = <T>(result: T) => boolean;
 
-type OnRuntimeExceptionFn = (err: RetryException | ScheduledRetryException) => void;
+type OnRuntimeExceptionFn = (err: RetryException) => void;
 
 export enum RetryBackoff {
   Linear = 'linear',
@@ -92,7 +96,6 @@ export enum RetryBackoff {
   Jitter = 'jitter',
   Constant = 'constant',
   Immediate = 'immediate',
-  Scheduled = 'scheduled',
 }
 
 export enum RetryValidationMode {
@@ -100,7 +103,20 @@ export enum RetryValidationMode {
   Strict,
 }
 
-export const defaultRetryExecutionOptions = {
-  backoff: RetryBackoff.Linear as const,
-  validationMode: RetryValidationMode.Default as const,
-} satisfies RetryExecutionOptions;
+export type RetryBucket = {
+  lastFailure: number;
+} & Bucketable;
+
+export const defaultRetryBucket = (): RetryBucket => ({
+  success: 0,
+  failure: 0,
+  rejection: 0,
+  lastFailure: 0,
+});
+
+export const recordToRetryBucket= (record: { [x: string]: string }): RetryBucket => ({
+  success: parseInt(record.success),
+  failure: parseInt(record.failure),
+  rejection: parseInt(record.rejection),
+  lastFailure: parseInt(record.lastFailure),
+});
