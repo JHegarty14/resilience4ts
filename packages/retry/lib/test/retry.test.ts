@@ -105,7 +105,7 @@ describe('Retry', () => {
       wait: 1000,
       retryStrategy: RetryStrategy.Budgeted,
       windowBudget: 5,
-      windowSize: 60000
+      windowSize: 60000,
     });
 
     const result = await retry.on(decorated)();
@@ -125,19 +125,21 @@ describe('Retry', () => {
       windowSize: 10000,
     });
 
-    await expect(retry.on(decorated)()).rejects.toThrow('Retry budget exhausted for test-budgeted-2');
+    await expect(retry.on(decorated)()).rejects.toThrow(
+      'Retry budget exhausted for test-budgeted-2',
+    );
     expect(decorated).toBeCalledTimes(2);
-  })
+  });
 
   it('should retry within budget', async () => {
     const decorated = jest.fn().mockRejectedValueOnce(new Error('test')).mockResolvedValue('OK');
-  
+
     retry = Retry.of('test-budgeted-3', {
       maxAttempts: 3,
       wait: 1000,
       retryStrategy: RetryStrategy.Budgeted,
       windowBudget: 500,
-      windowSize: 60000
+      windowSize: 60000,
     });
     const result = await retry.on(decorated)();
     expect(result).toBe('OK');
@@ -155,7 +157,9 @@ describe('Retry', () => {
       windowSize: 2000,
     });
 
-    await expect(retry.on(decorated)()).rejects.toThrow('Retry budget exhausted for test-budgeted-4');
+    await expect(retry.on(decorated)()).rejects.toThrow(
+      'Retry budget exhausted for test-budgeted-4',
+    );
     expect(decorated).toHaveBeenCalledTimes(1);
 
     await sleep(2500);
@@ -163,5 +167,5 @@ describe('Retry', () => {
     const result = await retry.on(decorated)();
     expect(result).toBe('OK');
     expect(decorated).toHaveBeenCalledTimes(2);
-  })
+  });
 });

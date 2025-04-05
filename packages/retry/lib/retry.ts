@@ -42,9 +42,7 @@ export class Retry implements ResilienceDecorator {
 
   private async init(): Promise<void> {
     await Retry.core.start();
-    const registered = await Retry.core.cache.exists(
-      KeyBuilder.retryRegistryKey(this.name)
-    );
+    const registered = await Retry.core.cache.exists(KeyBuilder.retryRegistryKey(this.name));
 
     if (!registered && this.config.retryStrategy === RetryStrategy.Budgeted) {
       await this.registerRetry();
@@ -66,7 +64,7 @@ export class Retry implements ResilienceDecorator {
   }
 
   private async getActiveBucket(): Promise<string> {
-    const currentWindow = Math.floor(Date.now() / (this.config.windowSize || 1))
+    const currentWindow = Math.floor(Date.now() / (this.config.windowSize || 1));
     const bucketKey = `retry:${this.name}:${currentWindow}`;
     const exists = await Retry.core.cache.exists(bucketKey);
     if (!exists) {
@@ -85,9 +83,7 @@ export class Retry implements ResilienceDecorator {
   /**
    * Decorates the given function with retry.
    */
-  on<Args, Return>(
-    fn: Decoratable<Args, Return>,
-  ): Decoratable<Args, Return> {
+  on<Args, Return>(fn: Decoratable<Args, Return>): Decoratable<Args, Return> {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 
@@ -113,7 +109,12 @@ export class Retry implements ResilienceDecorator {
           if (attempts >= this.config.maxAttempts) {
             throw new MaxRetriesExceeded(this.name, error);
           }
-          await Backoff.wait(this.config.retryMode ?? RetryBackoff.Linear, attempts, this.config.maxAttempts, this.config.wait);
+          await Backoff.wait(
+            this.config.retryMode ?? RetryBackoff.Linear,
+            attempts,
+            this.config.maxAttempts,
+            this.config.wait,
+          );
         }
       }
       throw new MaxRetriesExceeded(this.name);
@@ -124,10 +125,7 @@ export class Retry implements ResilienceDecorator {
    * Decorates the given function with retry. This varient of the decorator is
    * useful when the decorated function is a method on a class.
    */
-  onBound<Args, Return>(
-    fn: Decoratable<Args, Return>,
-    self: unknown,
-  ): Decoratable<Args, Return> {
+  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown): Decoratable<Args, Return> {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 
@@ -140,7 +138,7 @@ export class Retry implements ResilienceDecorator {
           }
         }
         try {
-          const result =  await fn.call(self, ...args);
+          const result = await fn.call(self, ...args);
           const ok = this.config.until?.(result) || true;
           if (!ok) {
             throw new RetryValidationException(`Result failed validation condition`);
@@ -153,7 +151,12 @@ export class Retry implements ResilienceDecorator {
           if (attempts >= this.config.maxAttempts) {
             throw new MaxRetriesExceeded(this.name, error);
           }
-          await Backoff.wait(this.config.retryMode ?? RetryBackoff.Linear, attempts, this.config.maxAttempts, this.config.wait);
+          await Backoff.wait(
+            this.config.retryMode ?? RetryBackoff.Linear,
+            attempts,
+            this.config.maxAttempts,
+            this.config.wait,
+          );
         }
       }
       throw new MaxRetriesExceeded(this.name);

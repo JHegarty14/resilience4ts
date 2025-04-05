@@ -3,8 +3,8 @@ import { RetryException } from './retry-exception.type';
 import { Bucketable } from '@forts/resilience4ts-core/lib/types';
 
 export enum RetryStrategy {
-   Budgeted,
-   Default,
+  Budgeted,
+  Default,
 }
 
 export type RetryConfig = {
@@ -17,13 +17,13 @@ export type RetryConfig = {
   readonly until?: ValidateResultFn;
 } & (
   | {
-    readonly retryStrategy: RetryStrategy.Budgeted;
-    readonly windowBudget: number;
-    readonly windowSize: number;
-  }
+      readonly retryStrategy: RetryStrategy.Budgeted;
+      readonly windowBudget: number;
+      readonly windowSize: number;
+    }
   | {
-    readonly retryStrategy?: RetryStrategy.Default;
-  }
+      readonly retryStrategy?: RetryStrategy.Default;
+    }
 );
 
 export class RetryConfigImpl {
@@ -114,7 +114,7 @@ export const defaultRetryBucket = (): RetryBucket => ({
   lastFailure: 0,
 });
 
-export const recordToRetryBucket= (record: { [x: string]: string }): RetryBucket => ({
+export const recordToRetryBucket = (record: { [x: string]: string }): RetryBucket => ({
   success: parseInt(record.success),
   failure: parseInt(record.failure),
   rejection: parseInt(record.rejection),
