@@ -22,7 +22,6 @@
     "cron-parser": "^4.9.0",
     "human-interval": "^2.0.1",
     "object-hash": "^3.0.0",
-    "oxide.ts": "^1.1.0",
     "pino": "^8.16.2",
     "redis": "^4.6.10",
     "toml": "^3.0.0"

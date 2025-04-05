@@ -19,10 +19,10 @@ jobs:
         with: # keep in sync with package.json
           version: 8
 
-      - name: Setup Node.js 18.x
+      - name: Setup Node.js 22.x
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 22.x
           cache: 'pnpm'
 
       - name: Install Dependencies

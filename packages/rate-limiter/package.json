@@ -19,8 +19,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@forts/resilience4ts-core": "workspace:^",
-    "oxide.ts": "^1.1.0"
+    "@forts/resilience4ts-core": "workspace:^"
   },
   "devDependencies": {
     "@types/jest": "^29.5.6",

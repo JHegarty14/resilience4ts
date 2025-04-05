@@ -493,7 +493,6 @@ const result = await queue.on(async () =&gt; {
 <hr />
 <h3 id="introduction-6"><a class="header" href="#introduction-6">Introduction</a></h3>
 <p>The fallback strategy provides an interface to define a callback that will be executed if the decorated function fails. This strategy is useful when you want to provide a default value or behavior in the event of a failure. For example, you may want to return a cached value or a default value from a configuration file. The fallback strategy is also useful for providing a graceful degradation of functionality when a service is unavailable, although you should consider using the circuit breaker strategy for this purpose as it provides more control over the failure state.</p>
-<p>Given the limitations of Typescript's type system, specifically when dealing with method decoators, you may find it most appropriate to type the decorated function to use a <code>Result</code> or <code>Either</code> monad. This approach will allow you to gracefully handle both the success and failure cases. Helpfull packages for this strategy include <a href="https://github.com/traverse1984/oxide.ts">oxide.ts</a> or <a href="https://github.com/supermacro/neverthrow">neverthrow</a>.</p>
 <h3 id="installation-3"><a class="header" href="#installation-3">Installation</a></h3>
 <p><code>npm i @forts/resilience4ts-fallback</code></p>
 <h3 id="create-and-configure-a-fallback"><a class="header" href="#create-and-configure-a-fallback">Create and Configure a Fallback</a></h3>

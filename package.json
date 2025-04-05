@@ -25,9 +25,9 @@
     "ci:prerelease": "pnpm --filter './packages/**' publish --tag next  --access public"
   },
   "engines": {
-    "node": ">= 16.20.1",
+    "node": ">= 22.0.0",
     "npm": "forbidden, install pnpm",
-    "pnpm": ">= 8.0.0"
+    "pnpm": ">= 10.0.0"
   },
   "author": "Jack Hegarty",
   "license": "MIT",
@@ -52,7 +52,7 @@
     "tsconfig-paths": "4.1.2",
     "tslib": "2.5.0",
     "turbo": "^1.8.3",
-    "typescript": "^4.9.5"
+    "typescript": "^5.8.0"
   },
   "lint-staged": {
     "*.{ts,tsx}": "eslint --fix",

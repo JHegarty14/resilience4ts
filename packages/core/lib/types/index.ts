@@ -8,7 +8,6 @@ export * from './decoratable.type';
 export * from './duration.type';
 export * from './expirable.type';
 export * from './json.type';
-export * from './monad.type';
 export * from './nullable.type';
 export * from './packet.type';
 export * from './resilience-config.type';

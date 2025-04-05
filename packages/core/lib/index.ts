@@ -11,19 +11,14 @@ export type {
   PacketOut,
   ResilienceConfig,
   ResilienceDecorator,
-  ResolveResult,
-  ResolveReturn,
   TDecoratable,
   UniqueId,
-  UnknownMonad,
 } from './types';
 export { ResilienceConfigImpl } from './types';
 export {
   assertUnreachable,
   ConfigLoader,
   defaultPredicateBuilder,
-  fromAsyncThrowable,
-  fromThrowable,
   Guard,
   PredicateBuilder,
   ResilienceKeyBuilder,
