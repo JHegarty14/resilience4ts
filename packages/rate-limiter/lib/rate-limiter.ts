@@ -3,6 +3,7 @@ import type { ResilienceDecorator } from '@forts/resilience4ts-core';
 import { RateLimitViolationException } from './exceptions';
 import { BaseRateLimiterStrategy, RateLimiterStrategyFactory } from './internal';
 import { type RateLimiterConfig, RateLimiterConfigImpl } from './types';
+import { wrapDecoratableFunction } from '@forts/resilience4ts-core/dist/lib/util';
 
 /**
  * RateLimiter Decorator
@@ -44,7 +45,9 @@ export class RateLimiter implements ResilienceDecorator {
   /**
    * Decorates the given function with a rate limiter.
    */
-  on<Args, Return>(fn: Decoratable<Args, Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(self: unknown, fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(fnOrSelf: Decoratable<Args, Return> | unknown, fn?: Decoratable<Args, Return>) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 
@@ -60,32 +63,13 @@ export class RateLimiter implements ResilienceDecorator {
         throw new RateLimitViolationException();
       }
 
-      return await fn(...args);
+      const wrappedFn = wrapDecoratableFunction(fnOrSelf, fn, ...args);
+      return await this.onInner(wrappedFn);
     };
   }
 
-  /**
-   * Decorates the given function with a rate limiter. This varient of the
-   * decorator is useful when the decorated function is a method on a class.
-   */
-  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown) {
-    return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
-      await this.initialized;
-
-      RateLimiter.core.emitter.emit('r4t-rate-limiter-request', this.name, this.tags);
-
-      const allowed = await this.strategy.guard(
-        this.name,
-        this.config.requestIdentifier?.(...args),
-      );
-
-      if (!allowed) {
-        RateLimiter.core.emitter.emit('r4t-rate-limiter-rejected', this.name, this.tags);
-        throw new RateLimitViolationException();
-      }
-
-      return await fn.call(self, ...args);
-    };
+  private async onInner<Return>(fn: () => Promise<Return>) {
+      return await fn();
   }
 
   getName() {

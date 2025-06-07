@@ -1,8 +1,9 @@
-import { OperationCancelledException, ResilienceProviderService } from '@forts/resilience4ts-core';
+import { Decoratable, OperationCancelledException, ResilienceProviderService } from '@forts/resilience4ts-core';
 import { Timeout } from '../timeout';
 
 import { setTimeout } from 'timers/promises';
 import { TimeoutExceededException } from '../exceptions';
+import { TimeoutOptions } from '../types';
 
 jest.setTimeout(10000);
 
@@ -66,7 +67,7 @@ describe('Timeout', () => {
   });
 
   it('should use passed signal to cancel the operation', async () => {
-    const decorated = jest.fn().mockImplementation(async () => {
+    const decorated: Decoratable<any, any> = jest.fn().mockImplementation(async () => {
       await setTimeout(2000);
       return 'OK';
     });
@@ -87,79 +88,8 @@ describe('Timeout', () => {
           addEventListener: jest.fn(),
           removeEventListener: jest.fn(),
           dispatchEvent: jest.fn(),
-        },
-      })();
-    } catch (e: unknown) {
-      expect(e).toBeInstanceOf(OperationCancelledException);
-      expect((e as OperationCancelledException).message).toEqual('Operation aborted: test');
-    }
-  });
-
-  it('onBound - should initialize timeout', async () => {
-    const listener = jest.fn();
-    svc.emitter.addListener('r4t-timeout-ready', listener);
-
-    const decorated: () => Promise<'OK'> = jest.fn().mockResolvedValue('OK');
-
-    timeout = Timeout.of('test', {
-      timeout: 1000,
-    });
-
-    const self = {};
-
-    const result = await timeout.onBound(decorated, self)();
-
-    expect(result).toBe('OK');
-  });
-
-  it('onBound - should timeout according to specified interval', async () => {
-    const listener = jest.fn();
-    svc.emitter.addListener('r4t-timeout-ready', listener);
-
-    const decorated = jest.fn().mockImplementation(async () => {
-      await setTimeout(2000);
-      return 'OK';
-    }) as jest.Mock<Promise<'OK'>, unknown[]>;
-
-    timeout = Timeout.of('test', {
-      timeout: 1000,
-    });
-
-    const self = {};
-
-    try {
-      await timeout.onBound(decorated, self)();
-    } catch (e: unknown) {
-      expect(e).toBeInstanceOf(TimeoutExceededException);
-    }
-  });
-
-  it('onBound - should use passed signal to cancel the operation', async () => {
-    const decorated = jest.fn().mockImplementation(async () => {
-      await setTimeout(2000);
-      return 'OK';
-    });
-
-    const signalSpy = jest.fn();
-
-    timeout = Timeout.of('test', {
-      timeout: 1000,
-    });
-
-    const self = {};
-
-    try {
-      await timeout.onBound(decorated, self, {
-        signal: {
-          onabort: signalSpy,
-          aborted: true,
-          reason: '',
-          throwIfAborted: jest.fn(),
-          addEventListener: jest.fn(),
-          removeEventListener: jest.fn(),
-          dispatchEvent: jest.fn(),
-        },
-      })();
+        } as unknown as AbortSignal,
+      } as TimeoutOptions<any>)();
     } catch (e: unknown) {
       expect(e).toBeInstanceOf(OperationCancelledException);
       expect((e as OperationCancelledException).message).toEqual('Operation aborted: test');

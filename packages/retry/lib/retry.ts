@@ -10,6 +10,7 @@ import { MaxRetriesExceeded, RetryBudgetExhausted, RetryValidationException } fr
 import { Backoff } from './backoff';
 import type { ResilienceDecorator } from '@forts/resilience4ts-core';
 import { KeyBuilder } from './internal';
+import { wrapDecoratableFunction } from '@forts/resilience4ts-core/lib/util';
 
 /**
  * Retry Decorator
@@ -83,53 +84,22 @@ export class Retry implements ResilienceDecorator {
   /**
    * Decorates the given function with retry.
    */
-  on<Args, Return>(fn: Decoratable<Args, Return>): Decoratable<Args, Return> {
+  on<Args, Return>(fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(self: unknown, fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(
+    fnOrSelf: Decoratable<Args, Return> | unknown,
+    fn?: Decoratable<Args, Return>
+  ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
+      const wrappedFn = wrapDecoratableFunction(fnOrSelf, fn, ...args);
 
-      let attempts = 0;
-      while (attempts < this.config.maxAttempts) {
-        if (this.config.retryStrategy === RetryStrategy.Budgeted) {
-          const currentCount = await this.incrementRetryCount();
-          if (currentCount > this.config.windowBudget) {
-            throw new RetryBudgetExhausted(this.name);
-          }
-        }
-        try {
-          const result = await fn(...args);
-          const ok = this.config.until?.(result) || true;
-          if (!ok) {
-            throw new RetryValidationException(`Result failed validation condition`);
-          }
-          return result;
-        } catch (err: unknown) {
-          const error = <Error>err;
-          this.config.onRuntimeError(error);
-          attempts++;
-          if (attempts >= this.config.maxAttempts) {
-            throw new MaxRetriesExceeded(this.name, error);
-          }
-          await Backoff.wait(
-            this.config.retryMode ?? RetryBackoff.Linear,
-            attempts,
-            this.config.maxAttempts,
-            this.config.wait,
-          );
-        }
-      }
-      throw new MaxRetriesExceeded(this.name);
+      return await this.onInner(wrappedFn);
     };
   }
 
-  /**
-   * Decorates the given function with retry. This varient of the decorator is
-   * useful when the decorated function is a method on a class.
-   */
-  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown): Decoratable<Args, Return> {
-    return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
-      await this.initialized;
-
-      let attempts = 0;
+  private async onInner<Return>(fn: () => Promise<Return>) {
+    let attempts = 0;
       while (attempts < this.config.maxAttempts) {
         if (this.config.retryStrategy === RetryStrategy.Budgeted) {
           const currentCount = await this.incrementRetryCount();
@@ -138,7 +108,7 @@ export class Retry implements ResilienceDecorator {
           }
         }
         try {
-          const result = await fn.call(self, ...args);
+          const result = await fn();
           const ok = this.config.until?.(result) || true;
           if (!ok) {
             throw new RetryValidationException(`Result failed validation condition`);
@@ -160,7 +130,6 @@ export class Retry implements ResilienceDecorator {
         }
       }
       throw new MaxRetriesExceeded(this.name);
-    };
   }
 
   getName() {

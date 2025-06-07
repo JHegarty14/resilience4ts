@@ -28,13 +28,10 @@ import { Timeout } from '@forts/resilience4ts-timeout';
  * decorators that can be applied to multiple methods.
  */
 export class ResiliencePipe<Args, Return> {
-  private static core: ResilienceProviderService;
   private constructor(
     private readonly name: string,
     private fn: Decoratable<Args, Return>,
-  ) {
-    ResiliencePipe.core = ResilienceProviderService.forRoot();
-  }
+  ) {}
 
   /**
    * Creates a new ResiliencePipe decorator.

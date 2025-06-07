@@ -20,6 +20,7 @@ import {
   recordToCircuitBucket,
 } from './types/circuit-breaker-model.type';
 import { KeyBuilder } from './internal';
+import { wrapDecoratableFunction } from '@forts/resilience4ts-core/lib/util';
 
 /**
  * CircuitBreaker Decorator
@@ -80,78 +81,49 @@ export class CircuitBreaker implements ResilienceDecorator {
   /**
    * Decorate a method with circuit breaker functionality
    */
-  on<Args, Return>(fn: Decoratable<Args, Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(self: unknown, fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(fnOrSelf: Decoratable<Args, Return> | unknown, fn?: Decoratable<Args, Return>) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
       CircuitBreaker.core.emitter.emit(CircuitEvents.request, this.name, this.tags);
 
-      const circuitState = await this.getCircuitState();
+      const wrappedFn = wrapDecoratableFunction(fnOrSelf, fn, ...args);
 
-      switch (circuitState) {
-        case CircuitBreakerState.Closed:
-          await this.onClosed();
-          break;
-        case CircuitBreakerState.HalfOpen:
-          this.onHalfOpen();
-          break;
-        case CircuitBreakerState.Open:
-          await this.onOpen();
-          break;
-        default:
-          assertUnreachable(circuitState);
-      }
-
-      try {
-        const result = await fn(...args);
-        await this.onSuccess();
-        return result;
-      } catch (e) {
-        await this.onError();
-        throw e;
-      } finally {
-        const activeBucket = await this.getActiveBucket();
-        await this.decrementCounter(activeBucket, 'inFlight');
-      }
+      return await this.onInner(wrappedFn);
     };
   }
 
-  /**
-   * Decorate a method with circuit breaker functionality. This varient of the
-   * decorator is useful when the decorated function is a method on a class.
-   */
-  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown) {
-    return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
-      await this.initialized;
-      CircuitBreaker.core.emitter.emit(CircuitEvents.request, this.name, this.tags);
+  private async onInner<Return>(fn: () => Promise<Return>) {
+    CircuitBreaker.core.emitter.emit(CircuitEvents.request, this.name, this.tags);
 
-      const circuitState = await this.getCircuitState();
+    const circuitState = await this.getCircuitState();
 
-      switch (circuitState) {
-        case CircuitBreakerState.Closed:
-          await this.onClosed();
-          break;
-        case CircuitBreakerState.HalfOpen:
-          this.onHalfOpen();
-          break;
-        case CircuitBreakerState.Open:
-          await this.onOpen();
-          break;
-        default:
-          assertUnreachable(circuitState);
+    switch (circuitState) {
+      case CircuitBreakerState.Closed:
+        await this.onClosed();
+        break;
+      case CircuitBreakerState.HalfOpen:
+        this.onHalfOpen();
+        break;
+      case CircuitBreakerState.Open:
+        await this.onOpen();
+        break;
+      default:
+        assertUnreachable(circuitState);
       }
 
-      try {
-        const result = await fn.call(self, ...args);
-        await this.onSuccess();
-        return result;
-      } catch (e) {
-        await this.onError();
-        throw e;
-      } finally {
-        const activeBucket = await this.getActiveBucket();
-        await this.decrementCounter(activeBucket, 'inFlight');
-      }
-    };
+    try {
+      const result = await fn();
+      await this.onSuccess();
+      return result;
+    } catch (e) {
+      await this.onError();
+      throw e;
+    } finally {
+      const activeBucket = await this.getActiveBucket();
+      await this.decrementCounter(activeBucket, 'inFlight');
+    }
   }
 
   private async onError() {

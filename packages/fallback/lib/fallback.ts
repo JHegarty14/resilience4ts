@@ -1,6 +1,7 @@
 import { Decoratable, ResilienceProviderService } from '@forts/resilience4ts-core';
 import type { Json, ResilienceDecorator } from '@forts/resilience4ts-core';
 import { FallbackAction, FallbackConfig, FallbackConfigImpl } from './types';
+import { wrapDecoratableFunction } from '@forts/resilience4ts-core/dist/lib/util';
 
 /**
  * Fallback Decorator
@@ -43,54 +44,34 @@ export class Fallback<Action extends Json> implements ResilienceDecorator {
   /**
    * Decorates the given function with fallback.
    */
-  on<Args, Return>(fn: Decoratable<Args, Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(self: unknown, fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(fnOrSelf: Decoratable<Args, Return> | unknown, fn?: Decoratable<Args, Return>) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 
-      try {
-        return await fn(...args);
-      } catch (err: unknown) {
-        const shouldHandle = this.config.shouldHandle.eval(err);
-
-        if (shouldHandle && this.config.fallbackAction) {
-          Fallback.core.emitter.emit('r4t-fallback', this.name, this.tags);
-          const promiseOrAction = this.config.fallbackAction(...args);
-          if (promiseOrAction instanceof Promise) {
-            return (await promiseOrAction) as unknown as Return;
-          }
-          return promiseOrAction as unknown as Return;
-        }
-
-        throw err;
-      }
+      const wrappedFn = wrapDecoratableFunction(fnOrSelf, fn, ...args);
+      return await this.onInner(wrappedFn, ...args);
     };
   }
 
-  /**
-   * Decorates the given function with fallback. This varient of the decorator is
-   * useful when the decorated function is a method on a class.
-   */
-  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown) {
-    return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
-      await this.initialized;
+  private async onInner<Args extends unknown[], Return>(fn: () => Promise<Return>, ...args: Args) {
+    try {
+      return await fn();
+    } catch (err: unknown) {
+      const shouldHandle = this.config.shouldHandle.eval(err);
 
-      try {
-        return await fn.call(self, ...args);
-      } catch (err: unknown) {
-        const shouldHandle = this.config.shouldHandle.eval(err);
-
-        if (shouldHandle && this.config.fallbackAction) {
-          Fallback.core.emitter.emit('r4t-fallback', this.name, this.tags);
-          const promiseOrAction = this.config.fallbackAction(...args);
-          if (promiseOrAction instanceof Promise) {
-            return (await promiseOrAction) as unknown as Return;
-          }
-          return promiseOrAction as unknown as Return;
+      if (shouldHandle && this.config.fallbackAction) {
+        Fallback.core.emitter.emit('r4t-fallback', this.name, this.tags);
+        const promiseOrAction = this.config.fallbackAction(...args);
+        if (promiseOrAction instanceof Promise) {
+          return (await promiseOrAction) as unknown as Return;
         }
-
-        throw err;
+        return promiseOrAction as unknown as Return;
       }
-    };
+
+      throw err;
+    }
   }
 
   getName() {

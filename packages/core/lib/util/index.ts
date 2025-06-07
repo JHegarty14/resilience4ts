@@ -5,4 +5,3 @@ export * from './hasher';
 export * from './key-builder';
 export * from './predicate-builder';
 export * from './safe-promise';
-export * from './send';

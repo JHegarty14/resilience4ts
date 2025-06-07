@@ -4,6 +4,7 @@ import {
   ResilienceProviderService,
 } from '@forts/resilience4ts-core';
 import { CacheBusterConfig, CacheBusterConfigImpl } from './types';
+import { wrapDecoratableFunction } from '@forts/resilience4ts-core/dist/lib/util';
 
 /**
  * CacheBuster Decorator
@@ -46,42 +47,23 @@ export class CacheBuster implements ResilienceDecorator {
   /**
    * Decorates the given function with cache busting functionality.
    */
-  on<Args, Return>(fn: Decoratable<Args, Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(self: unknown, fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(fnOrSelf: Decoratable<Args, Return> | unknown, fn?: Decoratable<Args, Return>) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
-      let shouldInvalidate = false;
-      try {
-        const result = await fn(...args);
-        shouldInvalidate = this.config.shouldInvalidate.eval(result);
-        return result;
-      } catch (e: unknown) {
-        shouldInvalidate =
-          this.config.invalidateOnException || this.config.shouldInvalidate.eval(e);
-        throw e;
-      } finally {
-        if (shouldInvalidate) {
-          const keysToInvalidate = this.config.invalidatesKeys(...args);
-          CacheBuster.core.emitter.emit(
-            'r4t-cache-bust',
-            { name: this.name, keys: keysToInvalidate },
-            this.tags,
-          );
-          await CacheBuster.core.cache.del(keysToInvalidate);
-        }
-      }
+      
+      const wrappedFn = wrapDecoratableFunction(fnOrSelf, fn, ...args);
+      const keysToInvalidate = this.config.invalidatesKeys(...args);
+
+      return await this.onInner(wrappedFn, keysToInvalidate);
     };
   }
 
-  /**
-   * Decorates the given function with cache busting functionality. This varient of the decorator is
-   * useful when the decorated function is a method on a class.
-   */
-  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown) {
-    return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
-      await this.initialized;
-      let shouldInvalidate = false;
+  private async onInner<Return>(fn: () => Promise<Return>, keysToInvalidate: string | string[]) {
+    let shouldInvalidate = false;
       try {
-        const result = await fn.call(self, ...args);
+        const result = await fn();
         shouldInvalidate = this.config.shouldInvalidate.eval(result);
         return result;
       } catch (e: unknown) {
@@ -90,7 +72,6 @@ export class CacheBuster implements ResilienceDecorator {
         throw e;
       } finally {
         if (shouldInvalidate) {
-          const keysToInvalidate = this.config.invalidatesKeys(...args);
           CacheBuster.core.emitter.emit(
             'r4t-cache-bust',
             { name: this.name, keys: keysToInvalidate },
@@ -99,7 +80,6 @@ export class CacheBuster implements ResilienceDecorator {
           await CacheBuster.core.cache.del(keysToInvalidate);
         }
       }
-    };
   }
 
   getName() {

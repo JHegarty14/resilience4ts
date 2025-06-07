@@ -2,10 +2,12 @@ import {
   type ResilienceDecorator,
   ResilienceProviderService,
   Decoratable,
+  UniqueId,
 } from '@forts/resilience4ts-core';
 import { BulkheadFullException } from './exceptions';
 import { BaseBulkheadStrategy, BulkheadStrategyFactory, KeyBuilder } from './internal';
 import { type BulkheadConfig, BulkheadConfigImpl } from './types';
+import { wrapDecoratableFunction } from '@forts/resilience4ts-core/dist/lib/util';
 
 /**
  * Bulkhead Decorator
@@ -60,40 +62,21 @@ export class Bulkhead implements ResilienceDecorator {
   /**
    * Decorates the given function with a bulkhead.
    */
-  on<Args, Return>(fn: Decoratable<Args, Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(self: unknown, fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(fnOrSelf: Decoratable<Args, Return> | unknown, fn?: Decoratable<Args, Return>) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 
-      Bulkhead.core.emitter.emit('r4t-bulkhead-request', this.name, this.tags);
-
+      const wrappedFn = wrapDecoratableFunction(fnOrSelf, fn, ...args);
       const uniqueId = this.config.getUniqueId(...args);
 
-      const acquired = await this.strategy.tryEnterBulkhead(uniqueId);
-
-      if (!acquired) {
-        Bulkhead.core.emitter.emit('r4t-bulkhead-full', this.name, this.tags);
-        throw new BulkheadFullException(this.name);
-      }
-
-      try {
-        return await fn(...args);
-      } finally {
-        await this.strategy.releaseBulkhead(uniqueId);
-      }
+      return await this.onInner(wrappedFn, uniqueId);
     };
   }
 
-  /**
-   * Decorates the given function with a bulkhead. This varient of the decorator is
-   * useful when the decorated function is a method on a class.
-   */
-  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown) {
-    return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
-      await this.initialized;
-
-      Bulkhead.core.emitter.emit('r4t-bulkhead-request', this.name, this.tags);
-
-      const uniqueId = this.config.getUniqueId(...args);
+  private async onInner<Return>(fn: () => Promise<Return>, uniqueId: UniqueId) {
+    Bulkhead.core.emitter.emit('r4t-bulkhead-request', this.name, this.tags);
 
       const acquired = await this.strategy.tryEnterBulkhead(uniqueId);
 
@@ -103,11 +86,10 @@ export class Bulkhead implements ResilienceDecorator {
       }
 
       try {
-        return await fn.call(self, ...args);
+        return await fn();
       } finally {
         await this.strategy.releaseBulkhead(uniqueId);
       }
-    };
   }
 
   getName() {

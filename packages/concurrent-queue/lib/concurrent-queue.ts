@@ -5,6 +5,7 @@ import { setTimeout } from 'timers/promises';
 import { CreateQueueLockException, QueueWaitExceeded } from './exceptions';
 import { KeyBuilder } from './internal';
 import { ConcurrentQueueConfig, ConcurrentQueueConfigImpl } from './types';
+import { wrapDecoratableFunction } from '@forts/resilience4ts-core/dist/lib/util';
 
 /**
  * ConcurrentQueue Decorator
@@ -68,71 +69,28 @@ export class ConcurrentQueue implements ResilienceDecorator {
   /**
    * Decorates the given function with a concurrent lock queue.
    */
-  on<Args, Return>(fn: Decoratable<Args, Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(self: unknown, fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(fnOrSelf: Decoratable<Args, Return> | unknown, fn?: Decoratable<Args, Return>)  {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 
-      ConcurrentQueue.core.emitter.emit('r4t-lock-queue-request', this.name, this.tags);
-
-      const { withKey, backoff, maxAttempts } = this.config;
-      const uuid = crypto.randomUUID();
-      const maxDuration = Array(maxAttempts)
-        .fill(backoff)
-        .reduce<number>((acc, curr, idx) => acc + curr * (idx + 1), 0);
-
+      const { withKey } = this.config;
       const uniqueId = typeof withKey === 'string' ? withKey : withKey(...args);
-      const score = Date.now() + maxDuration;
-      try {
-        await ConcurrentQueue.core.cache.zAdd(KeyBuilder.lockQueueKey(uniqueId), {
-          score,
-          value: uuid,
-        });
-      } catch (err: unknown) {
-        ConcurrentQueue.core.emitter.emit('r4t-lock-queue-failure', this.name, this.tags);
-        const cause = err instanceof Error ? err : new Error(JSON.stringify(err));
-        throw new CreateQueueLockException(this.name, uniqueId, cause);
-      }
-
-      let acquired = false;
-      let attempts = 0;
-
-      try {
-        while (!acquired) {
-          await setTimeout(attempts * backoff);
-          acquired = await this.acquireLock(uniqueId, uuid, score, attempts, maxAttempts);
-          attempts++;
-        }
-
-        return await fn(...args);
-      } catch (err: unknown) {
-        ConcurrentQueue.core.emitter.emit('r4t-lock-queue-failure', this.name, this.tags);
-        throw err;
-      } finally {
-        await ConcurrentQueue.core.cache.zRem(KeyBuilder.lockQueueKey(uniqueId), uuid);
-      }
+      const wrappedFn = wrapDecoratableFunction(fnOrSelf, fn, ...args);
+      return await this.onInner(wrappedFn, uniqueId);
     };
   }
 
-  /**
-   * Decorates the given function with a concurrent lock queue. This variant of the
-   * decorator is used when the function is bound to a class.
-   */
-  onBound<Args, Return>(
-    fn: (...args: Args extends unknown[] ? Args : [Args]) => Promise<Return>,
-    self: unknown,
-  ) {
-    return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
-      await this.initialized;
+  private async onInner<Return>(fn: () => Promise<Return>, uniqueId: string) {
+    ConcurrentQueue.core.emitter.emit('r4t-lock-queue-request', this.name, this.tags);
 
-      ConcurrentQueue.core.emitter.emit('r4t-lock-queue-request', this.name, this.tags);
-
-      const { withKey, backoff, maxAttempts } = this.config;
+      const { backoff, maxAttempts } = this.config;
       const uuid = crypto.randomUUID();
       const maxDuration = Array(maxAttempts)
         .fill(backoff)
         .reduce<number>((acc, curr, idx) => acc + curr * (idx + 1), 0);
 
-      const uniqueId = typeof withKey === 'string' ? withKey : withKey(...args);
       const score = Date.now() + maxDuration;
       try {
         await ConcurrentQueue.core.cache.zAdd(KeyBuilder.lockQueueKey(uniqueId), {
@@ -155,14 +113,13 @@ export class ConcurrentQueue implements ResilienceDecorator {
           attempts++;
         }
 
-        return await fn.call(self, ...args);
+        return await fn();
       } catch (err: unknown) {
         ConcurrentQueue.core.emitter.emit('r4t-lock-queue-failure', this.name, this.tags);
         throw err;
       } finally {
         await ConcurrentQueue.core.cache.zRem(KeyBuilder.lockQueueKey(uniqueId), uuid);
       }
-    };
   }
 
   private async acquireLock(

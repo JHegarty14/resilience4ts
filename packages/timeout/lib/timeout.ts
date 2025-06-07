@@ -1,8 +1,9 @@
-import { Decoratable, OperationCancelledException, SafePromise } from '@forts/resilience4ts-core';
+import { Decoratable, isDecoratable, OperationCancelledException, SafePromise } from '@forts/resilience4ts-core';
 import type { ResilienceDecorator } from '@forts/resilience4ts-core';
 import { setTimeout } from 'timers/promises';
 import { InvalidArgumentException, TimeoutExceededException } from './exceptions';
 import type { TimeoutConfig, TimeoutOptions } from './types';
+import { wrapDecoratableFunction } from '@forts/resilience4ts-core/dist/lib/util';
 
 /**
  * Timeout Decorator
@@ -32,66 +33,48 @@ export class Timeout implements ResilienceDecorator {
   on<Args, Return>(
     fn: Decoratable<Args, Return>,
     options?: TimeoutOptions<Args extends unknown[] ? Args : [Args]>,
+  ): Decoratable<Args, Return>;
+  on<Args, Return>(
+    self: unknown,
+    fn?: Decoratable<Args, Return>,
+    options?: TimeoutOptions<Args extends unknown[] ? Args : [Args]>
+  ): Decoratable<Args, Return>;
+  on<Args, Return>(
+    fnOrSelf: Decoratable<Args, Return> | unknown,
+    fnOrOpts?: Decoratable<Args, Return> | TimeoutOptions<Args extends unknown[] ? Args: [Args]>,
+    options?: TimeoutOptions<Args extends unknown[] ? Args: [Args]>
   ) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
-      const { signal } = options ?? {};
-      if (signal?.aborted === true) {
-        throw new OperationCancelledException(`Operation aborted: ${this.name}`);
-      }
+      const wrappedFn = wrapDecoratableFunction(fnOrSelf, fnOrOpts, ...args)
+      const opts = typeof fnOrOpts === 'function' ? options : fnOrOpts
 
-      const timeoutCtrl = new AbortController();
-      const ctrl = new AbortController();
-
-      try {
-        const result = await SafePromise.race<Return | TimeoutExceededException>([
-          fn(...args),
-          this.timeout(this.config.timeout, ctrl, timeoutCtrl),
-        ]);
-
-        if (result instanceof TimeoutExceededException) {
-          throw result;
-        }
-
-        return result;
-      } finally {
-        timeoutCtrl.abort();
-      }
+      return await this.onInner(wrappedFn, opts);
     };
   }
 
-  /**
-   * Decorates the given function with a timeout. This varient of the decorator is
-   * useful when the decorated function is a method on a class.
-   */
-  onBound<Args, Return>(
-    fn: Decoratable<Args, Return>,
-    self: unknown,
-    options?: TimeoutOptions<Args extends unknown[] ? Args : [Args]>,
-  ) {
-    return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
-      const { signal } = options ?? {};
-      if (signal?.aborted === true) {
-        throw new OperationCancelledException(`Operation aborted: ${this.name}`);
+  private async onInner<Args, Return>(fn: () => Promise<Return>, options?: TimeoutOptions<Args extends unknown[] ? Args : [Args]>) {
+    const { signal } = options ?? {};
+    if (signal?.aborted === true) {
+      throw new OperationCancelledException(`Operation aborted: ${this.name}`);
+    }
+
+    const timeoutCtrl = new AbortController();
+    const ctrl = new AbortController();
+
+    try {
+      const result = await SafePromise.race<Return | TimeoutExceededException>([
+        fn(),
+        this.timeout(this.config.timeout, ctrl, timeoutCtrl),
+      ]);
+
+      if (result instanceof TimeoutExceededException) {
+        throw result;
       }
 
-      const timeoutCtrl = new AbortController();
-      const ctrl = new AbortController();
-
-      try {
-        const result = await SafePromise.race<Return | TimeoutExceededException>([
-          fn.call(self, ...args),
-          this.timeout(this.config.timeout, ctrl, timeoutCtrl),
-        ]);
-
-        if (result instanceof TimeoutExceededException) {
-          throw result;
-        }
-
-        return result;
-      } finally {
-        timeoutCtrl.abort();
-      }
-    };
+      return result;
+    } finally {
+      timeoutCtrl.abort();
+    }
   }
 
   private async timeout(

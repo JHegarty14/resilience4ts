@@ -1,5 +1,6 @@
-export type TDecoratable = <Args, Return>(...args: any[]) => any;
-
-export type Decoratable<Args, Return> = (
+export type Decoratable<Args = any, Return = any> = (
   ...args: Args extends unknown[] ? Args : [Args]
 ) => Promise<Return>;
+
+export const isDecoratable = <Return>(fn: unknown): fn is Decoratable<unknown[], Return> =>
+   typeof fn === 'function';

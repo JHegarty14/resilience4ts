@@ -16,7 +16,7 @@ let client: RedisClientInstance;
 
 export async function PersistenceFactory(
   config: ResilienceRedisConfig,
-  logger?: BaseLogger,
+  logger: BaseLogger,
 ): Promise<RedisClientInstance> {
   function handleConnectionError(error: Error & { code?: any }): Error | null {
     if (error instanceof ConnectionTimeoutError) {
@@ -76,7 +76,7 @@ export async function PersistenceFactory(
 
     client = createClient(options);
     client.on('error', (err) => {
-      logger?.error(err, `Redis Client Error: ${JSON.stringify(config)}`);
+      logger.error(err, `Redis Client Error: ${JSON.stringify(config)}`);
     });
     await client.connect();
   }

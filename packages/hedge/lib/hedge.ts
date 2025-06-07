@@ -3,6 +3,7 @@ import type { ResilienceDecorator } from '@forts/resilience4ts-core';
 import { HedgeExecutor, KeyBuilder } from './internal';
 import { type HedgeConfig, HedgeConfigImpl, type HedgedResult } from './types';
 import { HedgeEvent, HedgeEventType } from './event';
+import { wrapDecoratableFunction } from '@forts/resilience4ts-core/dist/lib/util';
 
 /**
  * Hedge Decorator
@@ -48,75 +49,24 @@ export class Hedge implements ResilienceDecorator {
   /**
    * Decorates the given function with a hedge contingency.
    */
-  on<Args, Return>(fn: Decoratable<Args, Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(self: unknown, fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(fnOrSelf: Decoratable<Args, Return> | unknown, fn?: Decoratable<Args, Return>) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 
-      const controller = new AbortController();
-
-      const { actionGenerator } = this.config;
-
-      const hedged = (): Promise<Return> =>
-        actionGenerator ? actionGenerator(...(args as any[])) : fn(...args);
-
-      const sf = this.hedgeExecutor.schedule<Return>(hedged, this.config.delay, controller);
-
-      const start = Date.now();
-      let result: HedgedResult<Return>;
-      try {
-        result = await SafePromise.race<HedgedResult<Return>>([
-          fn(...args).then((r) => ({ value: r, fromPrimary: true, ok: true })),
-          sf,
-        ]);
-      } catch (err: unknown) {
-        const error = err instanceof Error ? err : new Error(JSON.stringify(err));
-        result = { value: error, fromPrimary: false, ok: false };
-      }
-
-      const duration = Date.now() - start;
-
-      const { fromPrimary, value } = result;
-
-      if (fromPrimary) {
-        this.hedgeExecutor.cancel();
-        if (result.ok === false) {
-          this.onPrimaryFailure(duration, value as Error);
-          throw value;
-        } else {
-          this.onPrimarySuccess(duration);
-        }
-      } else {
-        if (result.ok === false) {
-          this.onHedgeFailure(duration, value as Error);
-          throw value;
-        } else {
-          this.onHedgeSuccess(duration);
-        }
-      }
-
-      return value as Return;
+      const wrappedFn = wrapDecoratableFunction(fnOrSelf, fn, ...args);
+      return await this.onInner(wrappedFn, ...args);
     };
   }
 
-  /**
-   * Decorates the given function with a hedge contingency. This variant of the
-   * decorator is used when the function is bound to a class.
-   */
-  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown) {
-    return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
-      await this.initialized;
-
-      const controller = new AbortController();
+  private async onInner<Args extends unknown[], Return>(fn: () => Promise<Return>, ...args: Args) {
+    const controller = new AbortController();
 
       const { actionGenerator } = this.config;
 
       const hedged = (): Promise<Return> =>
-        actionGenerator
-          ? actionGenerator.call<unknown, any[], Promise<Return>>(self, ...args)
-          : fn.call<unknown, Args extends unknown[] ? Args : [Args], Promise<Return>>(
-              self,
-              ...args,
-            );
+        actionGenerator ? actionGenerator(...(args as any[])) : fn();
 
       const sf = this.hedgeExecutor.schedule<Return>(hedged, this.config.delay, controller);
 
@@ -124,7 +74,7 @@ export class Hedge implements ResilienceDecorator {
       let result: HedgedResult<Return>;
       try {
         result = await SafePromise.race<HedgedResult<Return>>([
-          fn.call(self, ...args).then((r) => ({ value: r, fromPrimary: true, ok: true })),
+          fn().then((r) => ({ value: r, fromPrimary: true, ok: true })),
           sf,
         ]);
       } catch (err: unknown) {
@@ -154,7 +104,6 @@ export class Hedge implements ResilienceDecorator {
       }
 
       return value as Return;
-    };
   }
 
   onHedging(

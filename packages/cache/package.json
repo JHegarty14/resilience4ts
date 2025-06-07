@@ -23,7 +23,6 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.6",
-    "@types/node": "^20.8.7",
-    "@types/object-hash": "^3.0.6"
+    "@types/node": "^20.8.7"
   }
 }

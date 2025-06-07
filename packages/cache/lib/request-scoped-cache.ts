@@ -5,6 +5,7 @@ import {
 } from '@forts/resilience4ts-core';
 import { RequestScopedCacheFactory } from './internal';
 import { type RequestScopedCacheConfig, RequestScopedCacheType } from './types';
+import { wrapDecoratableFunction } from '@forts/resilience4ts-core/dist/lib/util';
 
 /**
  * RequestScopedCache Decorator
@@ -54,106 +55,60 @@ export class RequestScopedCache implements ResilienceDecorator {
   /**
    * Decorates the given function with caching.
    */
-  on<Args, Return>(fn: Decoratable<Args, Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(self: unknown, fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(fnOrSelf: Decoratable<Args, Return> | unknown, fn?: Decoratable<Args, Return>) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
       await this.initialized;
 
-      const cache = RequestScopedCacheFactory.resolve(
-        this.config.type,
-        RequestScopedCache.core.cache,
-      );
-      const scope = this.config.extractScope(...args);
-      try {
-        const cacheKey = this.config.extractKey(...args);
-
-        const cached = await cache.get<Return>(scope, cacheKey);
-
-        if (cached) {
-          RequestScopedCache.core.emitter.emit(
-            'r4t-cache-hit',
-            { name: this.name, cacheKey },
-            this.tags,
-          );
-          return cached;
-        }
-
-        RequestScopedCache.core.emitter.emit(
-          'r4t-cache-miss',
-          { name: this.name, cacheKey },
-          this.tags,
-        );
-        const result = await fn(...args);
-
-        if (result) {
-          await cache.set(scope, cacheKey, result);
-        }
-
-        return result;
-      } catch (err: unknown) {
-        RequestScopedCache.core.emitter.emit('r4t-cache-error', this.name, this.tags);
-        throw err;
-      } finally {
-        if (
-          this.config.type === RequestScopedCacheType.Distributed &&
-          this.config.clearOnRequestEnd
-        ) {
-          await cache.del(scope);
-        }
-      }
+      const wrappedFn = wrapDecoratableFunction(fnOrSelf, fn, ...args);
+      return await this.onInner(wrappedFn, ...args);
     };
   }
 
-  /**
-   * Decorates the given function with caching. This variant of the decorator is
-   * used when the function is bound to a class.
-   */
-  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown) {
-    return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
-      await this.initialized;
+  private async onInner<Args extends unknown[], Return>(fn: () => Promise<Return>, ...args: Args) {
+    const cache = RequestScopedCacheFactory.resolve(
+      this.config.type,
+      RequestScopedCache.core.cache,
+    );
+    const scope = this.config.extractScope(...args);
+    try {
+      const cacheKey = this.config.extractKey(...args);
 
-      const cache = RequestScopedCacheFactory.resolve(
-        this.config.type,
-        RequestScopedCache.core.cache,
-      );
-      const scope = this.config.extractScope(...args);
-      try {
-        const cacheKey = this.config.extractKey(...args);
+      const cached = await cache.get<Return>(scope, cacheKey);
 
-        const cached = await cache.get<Return>(scope, cacheKey);
-
-        if (cached) {
-          RequestScopedCache.core.emitter.emit(
-            'r4t-cache-hit',
-            { name: this.name, cacheKey },
-            this.tags,
-          );
-          return cached;
-        }
-
+      if (cached) {
         RequestScopedCache.core.emitter.emit(
-          'r4t-cache-miss',
+          'r4t-cache-hit',
           { name: this.name, cacheKey },
           this.tags,
         );
-        const result = await fn.call(self, ...args);
-
-        if (result) {
-          await cache.set(scope, cacheKey, result);
-        }
-
-        return result;
-      } catch (err: unknown) {
-        RequestScopedCache.core.emitter.emit('r4t-cache-error', this.name, this.tags);
-        throw err;
-      } finally {
-        if (
-          this.config.type === RequestScopedCacheType.Distributed &&
-          this.config.clearOnRequestEnd
-        ) {
-          await cache.del(scope);
-        }
+        return cached;
       }
-    };
+
+      RequestScopedCache.core.emitter.emit(
+        'r4t-cache-miss',
+        { name: this.name, cacheKey },
+        this.tags,
+      );
+      const result = await fn();
+
+      if (result) {
+        await cache.set(scope, cacheKey, result);
+      }
+
+      return result;
+    } catch (err: unknown) {
+      RequestScopedCache.core.emitter.emit('r4t-cache-error', this.name, this.tags);
+      throw err;
+    } finally {
+      if (
+        this.config.type === RequestScopedCacheType.Distributed &&
+        this.config.clearOnRequestEnd
+      ) {
+        await cache.del(scope);
+      }
+    }
   }
 
   onCacheHit(

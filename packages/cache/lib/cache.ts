@@ -5,6 +5,7 @@ import {
 } from '@forts/resilience4ts-core';
 import { KeyBuilder } from './internal';
 import { type CacheConfig, CacheConfigImpl } from './types';
+import { wrapDecoratableFunction } from '@forts/resilience4ts-core/dist/lib/util';
 
 /**
  * Cache Decorator
@@ -47,71 +48,43 @@ export class Cache implements ResilienceDecorator {
   /**
    * Decorates the given function with caching.
    */
-  on<Args, Return>(fn: Decoratable<Args, Return>) {
+  on<Args, Return>(fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(self: unknown, fn: Decoratable<Args, Return>): Decoratable<Args, Return>;
+  on<Args, Return>(fnOrSelf: Decoratable<Args, Return> | unknown, fn?: Decoratable<Args, Return>) {
     return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
-      try {
-        await this.initialized;
-
-        const cacheKey = this.config.extractKey(...args);
-
-        const cached = await Cache.core.cache.get(cacheKey);
-
-        if (cached) {
-          Cache.core.emitter.emit('r4t-cache-hit', { name: this.name, cacheKey }, this.tags);
-          return JSON.parse(cached);
-        }
-
-        Cache.core.emitter.emit('r4t-cache-miss', { name: this.name, cacheKey }, this.tags);
-        const result = await fn(...args);
-
-        if (result) {
-          await Cache.core.cache.set(cacheKey, JSON.stringify(result), {
-            PX: this.config.expiration,
-          });
-        }
-        return result;
-      } catch (err: unknown) {
-        const error = err instanceof Error ? err : new Error(JSON.stringify(err));
-        Cache.core.emitter.emit('r4t-cache-error', { error, name: this.name }, this.tags);
-        throw err;
-      }
+      await this.initialized;
+      
+      const wrappedFn = wrapDecoratableFunction(fnOrSelf, fn, ...args);
+      const cacheKey = this.config.extractKey(...args);
+      return await this.onInner(wrappedFn, cacheKey);
     };
   }
 
-  /**
-   * Decorates the given function with caching.
-   *
-   * This variant of the decorator is used when the function is bound to a class.
-   */
-  onBound<Args, Return>(fn: Decoratable<Args, Return>, self: unknown) {
-    return async (...args: Args extends unknown[] ? Args : [Args]): Promise<Return> => {
-      try {
-        await this.initialized;
+  async onInner<Return>(fn: () => Promise<Return>, cacheKey: string) {
+    try {
+      
 
-        const cacheKey = this.config.extractKey(...args);
+      const cached = await Cache.core.cache.get(cacheKey);
 
-        const cached = await Cache.core.cache.get(cacheKey);
-
-        if (cached) {
-          Cache.core.emitter.emit('r4t-cache-hit', { name: this.name, cacheKey }, this.tags);
-          return JSON.parse(cached);
-        }
-
-        Cache.core.emitter.emit('r4t-cache-miss', { name: this.name, cacheKey }, this.tags);
-        const result = await fn.call(self, ...args);
-
-        if (result) {
-          await Cache.core.cache.set(cacheKey, JSON.stringify(result), {
-            PX: this.config.expiration,
-          });
-        }
-        return result;
-      } catch (err: unknown) {
-        const error = err instanceof Error ? err : new Error(JSON.stringify(err));
-        Cache.core.emitter.emit('r4t-cache-error', { error, name: this.name }, this.tags);
-        throw err;
+      if (cached) {
+        Cache.core.emitter.emit('r4t-cache-hit', { name: this.name, cacheKey }, this.tags);
+        return JSON.parse(cached);
       }
-    };
+
+      Cache.core.emitter.emit('r4t-cache-miss', { name: this.name, cacheKey }, this.tags);
+      const result = await fn();
+
+      if (result) {
+        await Cache.core.cache.set(cacheKey, JSON.stringify(result), {
+          PX: this.config.expiration,
+        });
+      }
+      return result;
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(JSON.stringify(err));
+      Cache.core.emitter.emit('r4t-cache-error', { error, name: this.name }, this.tags);
+      throw err;
+    }
   }
 
   onCacheHit(

@@ -5,13 +5,10 @@ export * from './logger';
 export type {
   Decoratable,
   Duration,
+  isDecoratable,
   Json,
-  PacketId,
-  PacketIn,
-  PacketOut,
   ResilienceConfig,
   ResilienceDecorator,
-  TDecoratable,
   UniqueId,
 } from './types';
 export { ResilienceConfigImpl } from './types';

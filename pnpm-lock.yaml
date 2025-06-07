@@ -228,9 +228,6 @@ importers:
       '@types/node':
         specifier: ^20.8.7
         version: 20.17.22
-      '@types/object-hash':
-        specifier: ^3.0.6
-        version: 3.0.6
 
   packages/circuit-breaker:
     dependencies:
@@ -273,15 +270,6 @@ importers:
 
   packages/core:
     dependencies:
-      cron-parser:
-        specifier: ^4.9.0
-        version: 4.9.0
-      human-interval:
-        specifier: ^2.0.1
-        version: 2.0.1
-      object-hash:
-        specifier: ^3.0.0
-        version: 3.0.0
       pino:
         specifier: ^8.16.2
         version: 8.21.0
@@ -331,8 +319,8 @@ importers:
         specifier: workspace:^
         version: link:../core
       '@golevelup/nestjs-discovery':
-        specifier: ^4.0.0
-        version: 4.0.3(@nestjs/common@10.4.15(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@10.4.15)
+        specifier: ^5.0.0
+        version: 5.0.0(@nestjs/common@10.4.15(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@10.4.15)
       '@nestjs/common':
         specifier: ^10.0.0
         version: 10.4.15(reflect-metadata@0.1.14)(rxjs@7.8.2)
@@ -662,11 +650,11 @@ packages:
     resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  '@golevelup/nestjs-discovery@4.0.3':
-    resolution: {integrity: sha512-8w3CsXHN7+7Sn2i419Eal1Iw/kOjAd6Kb55M/ZqKBBwACCMn4WiEuzssC71LpBMI1090CiDxuelfPRwwIrQK+A==}
+  '@golevelup/nestjs-discovery@5.0.0':
+    resolution: {integrity: sha512-NaIWLCLI+XvneUK05LH2idHLmLNITYT88YnpOuUQmllKtiJNIS3woSt7QXrMZ5k3qUWuZpehEVz1JtlX4I1KyA==}
     peerDependencies:
-      '@nestjs/common': ^10.x || ^11.0.0
-      '@nestjs/core': ^10.x || ^11.0.0
+      '@nestjs/common': ^11.0.20
+      '@nestjs/core': ^11.0.20
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -1032,9 +1020,6 @@ packages:
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
-
-  '@types/object-hash@3.0.6':
-    resolution: {integrity: sha512-fOBV8C1FIu2ELinoILQ+ApxcUKz4ngq+IWUYrxSGjXzzjUALijilampwkMgEtJ+h2njAW3pi853QpzNVCHB73w==}
 
   '@types/qs@6.9.18':
     resolution: {integrity: sha512-kK7dgTYDyGqS+e2Q4aK9X3D7q234CIZ1Bv0q/7Z5IwRDoADNU81xXJK/YVyLbLTZCoIwUoDoffFeF+p/eIklAA==}
@@ -1678,10 +1663,6 @@ packages:
   create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
 
-  cron-parser@4.9.0:
-    resolution: {integrity: sha512-p0SaNjrHOnQeR8/VnfGbmg9te2kfyYSQ7Sc/j/6DtPL3JQvKxmjO9TSjNFpujqV3vEYYBvNNvXSxzyksBWAx1Q==}
-    engines: {node: '>=12.0.0'}
-
   cross-spawn@5.1.0:
     resolution: {integrity: sha512-pTgQJ5KC0d2hcY8eyL1IzlBPYjTkyH72XRZPnLyKus2mBfNjQs3klqbJU2VILqZryAZUt9JOb3h/mWMy23/f5A==}
 
@@ -2242,9 +2223,6 @@ packages:
   human-id@1.0.2:
     resolution: {integrity: sha512-UNopramDEhHJD+VR+ehk8rOslwSfByxPIZyJRfV739NDhN5LF1fa1MqnzKm2lGTQRjNrjK19Q5fhkgIfjlVUKw==}
 
-  human-interval@2.0.1:
-    resolution: {integrity: sha512-r4Aotzf+OtKIGQCB3odUowy4GfUDTy3aTWTfLd7ZF2gBCy3XW3v/dJLRefZnOFFnjqs5B1TypvS8WarpBkYUNQ==}
-
   human-signals@2.1.0:
     resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
     engines: {node: '>=10.17.0'}
@@ -2708,10 +2686,6 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  luxon@3.5.0:
-    resolution: {integrity: sha512-rh+Zjr6DNfUYR3bPwJEnuwDdqMbxZW7LOQfUN4B54+Cl+0o5zaU9RJ6bcidfDtC1cWCZXQ+nvX8bf6bAji37QQ==}
-    engines: {node: '>=12'}
-
   magic-string@0.30.8:
     resolution: {integrity: sha512-ISQTe55T2ao7XtlAStud6qwYPZjE4GK1S/BeVPus4jrq6JuOnQ00YKQC581RWhR122W7msZV263KzVeLoqidyQ==}
     engines: {node: '>=12'}
@@ -2905,16 +2879,9 @@ packages:
     resolution: {integrity: sha512-ppwTtiJZq0O/ai0z7yfudtBpWIoxM8yE6nHi1X47eFR2EWORqfbu6CnPlNsjeN683eT0qG6H/Pyf9fCcvjnnnQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
-  numbered@1.1.0:
-    resolution: {integrity: sha512-pv/ue2Odr7IfYOO0byC1KgBI10wo5YDauLhxY6/saNzAdAs0r1SotGCPzzCLNPL0xtrAwWRialLu23AAu9xO1g==}
-
   object-assign@4.1.1:
     resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
     engines: {node: '>=0.10.0'}
-
-  object-hash@3.0.0:
-    resolution: {integrity: sha512-RSn9F68PjH9HqtltsSnqYC1XXoWe9Bju5+213R98cNGttag9q9yAOTzdbsqvIa7aNm5WffBZFpWYr2aWrklWAw==}
-    engines: {node: '>= 6'}
 
   object-inspect@1.13.4:
     resolution: {integrity: sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew==}
@@ -4402,7 +4369,7 @@ snapshots:
 
   '@eslint/js@8.57.1': {}
 
-  '@golevelup/nestjs-discovery@4.0.3(@nestjs/common@10.4.15(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@10.4.15)':
+  '@golevelup/nestjs-discovery@5.0.0(@nestjs/common@10.4.15(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@10.4.15)':
     dependencies:
       '@nestjs/common': 10.4.15(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/core': 10.4.15(@nestjs/common@10.4.15(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/platform-express@10.4.15)(reflect-metadata@0.1.14)(rxjs@7.8.2)
@@ -4964,8 +4931,6 @@ snapshots:
       undici-types: 6.19.8
 
   '@types/normalize-package-data@2.4.4': {}
-
-  '@types/object-hash@3.0.6': {}
 
   '@types/qs@6.9.18': {}
 
@@ -5740,10 +5705,6 @@ snapshots:
 
   create-require@1.1.1: {}
 
-  cron-parser@4.9.0:
-    dependencies:
-      luxon: 3.5.0
-
   cross-spawn@5.1.0:
     dependencies:
       lru-cache: 4.1.5
@@ -6345,10 +6306,6 @@ snapshots:
       toidentifier: 1.0.1
 
   human-id@1.0.2: {}
-
-  human-interval@2.0.1:
-    dependencies:
-      numbered: 1.1.0
 
   human-signals@2.1.0: {}
 
@@ -7106,8 +7063,6 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  luxon@3.5.0: {}
-
   magic-string@0.30.8:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
@@ -7273,11 +7228,7 @@ snapshots:
     dependencies:
       path-key: 4.0.0
 
-  numbered@1.1.0: {}
-
   object-assign@4.1.1: {}
-
-  object-hash@3.0.0: {}
 
   object-inspect@1.13.4: {}
 

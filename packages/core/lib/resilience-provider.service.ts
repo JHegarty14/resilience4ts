@@ -3,6 +3,7 @@ import { pino, BaseLogger } from 'pino';
 import { PersistenceFactory, RedisClientInstance } from './cache/cache.service';
 import { ResilienceConfig } from './types';
 import { ConfigLoader, ResilienceKeyBuilder } from './util';
+import { Messages } from './constants';
 
 export class ResilienceProviderService {
   static instance?: ResilienceProviderService;
@@ -63,18 +64,25 @@ export class ResilienceProviderService {
   }
 
   private async init(): Promise<void> {
+    this.logger.info(Messages.OnInit);
     this.cache = await this._cache;
   }
 
   async start() {
     await this.initialized;
-
+    this.logger.info(Messages.OnStart);
     return;
   }
 
   async stop() {
-    await this.cache.disconnect();
+    try {
+      this.logger.info(Messages.OnShutdown)
+      await this.cache.disconnect();
 
-    ResilienceProviderService.instance = undefined;
+      ResilienceProviderService.instance = undefined;
+      this.logger.info(Messages.OnExit);
+    } catch (e: unknown) {
+      this.logger.error(e, Messages.OnShutdownError);
+    }
   }
 }
