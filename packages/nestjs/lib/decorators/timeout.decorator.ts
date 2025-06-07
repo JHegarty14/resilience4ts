@@ -1,5 +1,5 @@
 import { Timeout as TimeoutImpl, type TimeoutConfig } from '@forts/resilience4ts-all';
-import { TDecoratable } from '@forts/resilience4ts-core';
+import { Decoratable } from '@forts/resilience4ts-core';
 
 /**
  * Timeout Decorator
@@ -10,7 +10,7 @@ import { TDecoratable } from '@forts/resilience4ts-core';
  * decorator will reject the request with a `TimeoutExceededException`.
  */
 export const Timeout = (options: TimeoutConfig) => {
-  return <T extends TDecoratable>(
+  return <T extends Decoratable>(
     _: object,
     propertyKey: string,
     descriptor: TypedPropertyDescriptor<T>,
@@ -23,7 +23,7 @@ export const Timeout = (options: TimeoutConfig) => {
     const timeout = TimeoutImpl.of(propertyKey, options);
 
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return timeout.onBound(originalMethod, this)(...args);
+      return timeout.on(this, originalMethod)(...args);
     } as T;
 
     return descriptor;

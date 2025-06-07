@@ -1,5 +1,5 @@
 import { Fallback as FallbackImpl, type FallbackConfig } from '@forts/resilience4ts-all';
-import { TDecoratable } from '@forts/resilience4ts-core';
+import { Decoratable } from '@forts/resilience4ts-core';
 
 /**
  * Fallback Decorator
@@ -13,7 +13,7 @@ import { TDecoratable } from '@forts/resilience4ts-core';
  * the error.
  */
 export const Fallback = (options: FallbackConfig) => {
-  return <T extends TDecoratable>(
+  return <T extends Decoratable>(
     _: object,
     propertyKey: string,
     descriptor: TypedPropertyDescriptor<T>,
@@ -25,7 +25,7 @@ export const Fallback = (options: FallbackConfig) => {
     const originalMethod = descriptor.value;
     const fallback = FallbackImpl.of(propertyKey, options);
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return fallback.onBound(originalMethod, this)(...args);
+      return fallback.on(this, originalMethod)(...args);
     } as T;
 
     return descriptor;

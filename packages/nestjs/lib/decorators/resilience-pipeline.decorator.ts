@@ -2,7 +2,7 @@ import {
   ResiliencePipe as Pipeline,
   ResiliencePipeBuilder as PipelineBuilder,
 } from '@forts/resilience4ts-all';
-import type { ResilienceDecorator, TDecoratable } from '@forts/resilience4ts-core';
+import type { ResilienceDecorator, Decoratable } from '@forts/resilience4ts-core';
 import { MethodDecorator } from '../types';
 
 /**
@@ -22,7 +22,7 @@ export function ResiliencePipeline(...decorators: ResilienceDecorator[]): Method
 export function ResiliencePipeline(
   ...pipeOrDecorators: [PipelineBuilder] | ResilienceDecorator[]
 ): MethodDecorator {
-  return <T extends TDecoratable>(
+  return <T extends Decoratable>(
     _: object,
     propertyKey: string,
     descriptor: TypedPropertyDescriptor<T>,

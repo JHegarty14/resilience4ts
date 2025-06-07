@@ -21,7 +21,7 @@
   "dependencies": {
     "@forts/resilience4ts-all": "workspace:^",
     "@forts/resilience4ts-core": "workspace:^",
-    "@golevelup/nestjs-discovery": "^4.0.0",
+    "@golevelup/nestjs-discovery": "^5.0.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
     "reflect-metadata": "^0.1.12",

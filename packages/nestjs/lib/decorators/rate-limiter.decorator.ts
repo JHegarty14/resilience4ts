@@ -1,5 +1,5 @@
 import { RateLimiter as RateLimiterImpl, type RateLimiterConfig } from '@forts/resilience4ts-all';
-import { TDecoratable } from '@forts/resilience4ts-core';
+import { Decoratable } from '@forts/resilience4ts-core';
 
 /**
  * RateLimiter Decorator
@@ -11,7 +11,7 @@ import { TDecoratable } from '@forts/resilience4ts-core';
  * will throw a {@link RateLimitViolationException}.
  */
 export const RateLimiter = (options: RateLimiterConfig) => {
-  return <T extends TDecoratable>(
+  return <T extends Decoratable>(
     _: object,
     propertyKey: string,
     descriptor: TypedPropertyDescriptor<T>,
@@ -24,7 +24,7 @@ export const RateLimiter = (options: RateLimiterConfig) => {
     const retry = RateLimiterImpl.of(propertyKey, options);
 
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return retry.onBound(originalMethod, this)(...args);
+      return retry.on(this, originalMethod)(...args);
     } as T;
 
     return descriptor;

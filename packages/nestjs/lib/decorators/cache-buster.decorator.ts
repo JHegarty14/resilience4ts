@@ -1,5 +1,5 @@
 import { CacheBuster as CacheBusterImpl, type CacheBusterConfig } from '@forts/resilience4ts-all';
-import { TDecoratable } from '@forts/resilience4ts-core';
+import { Decoratable } from '@forts/resilience4ts-core';
 
 /**
  * CacheBuster Decorator
@@ -11,7 +11,7 @@ import { TDecoratable } from '@forts/resilience4ts-core';
  * mechanisms. The decorated function is always executed, even if the cache is not invalidated.
  */
 export function CacheBuster(config: CacheBusterConfig) {
-  return <T extends TDecoratable>(
+  return <T extends Decoratable>(
     _: object,
     propertyKey: string,
     descriptor: TypedPropertyDescriptor<T>,
@@ -24,7 +24,7 @@ export function CacheBuster(config: CacheBusterConfig) {
     const cacheBuster = CacheBusterImpl.of(propertyKey, config);
 
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return cacheBuster.onBound(originalMethod, this)(...args);
+      return cacheBuster.on(this, originalMethod)(...args);
     } as T;
 
     return descriptor;

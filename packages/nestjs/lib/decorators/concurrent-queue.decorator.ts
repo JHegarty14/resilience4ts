@@ -2,7 +2,7 @@ import {
   ConcurrentQueue as ConcurrentQueueImpl,
   type ConcurrentQueueConfig,
 } from '@forts/resilience4ts-all';
-import { TDecoratable } from '@forts/resilience4ts-core';
+import { Decoratable } from '@forts/resilience4ts-core';
 
 /**
  * ConcurrentQueue Decorator
@@ -24,7 +24,7 @@ import { TDecoratable } from '@forts/resilience4ts-core';
  * were received, the `@ConcurrentQueue` decorator should be used.
  */
 export const ConcurrentQueue = (options: ConcurrentQueueConfig) => {
-  return <T extends TDecoratable>(
+  return <T extends Decoratable>(
     _: object,
     propertyKey: string,
     descriptor: TypedPropertyDescriptor<T>,
@@ -37,7 +37,7 @@ export const ConcurrentQueue = (options: ConcurrentQueueConfig) => {
     const lock = ConcurrentQueueImpl.of(propertyKey, options);
 
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return lock.onBound(originalMethod, this)(...args);
+      return lock.on(this, originalMethod)(...args);
     } as T;
 
     return descriptor;

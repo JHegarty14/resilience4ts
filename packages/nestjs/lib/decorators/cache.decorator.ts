@@ -1,5 +1,5 @@
 import { Cache as CacheImpl, type CacheConfig } from '@forts/resilience4ts-all';
-import { TDecoratable } from '@forts/resilience4ts-core';
+import { Decoratable } from '@forts/resilience4ts-core';
 
 /**
  * Cache Decorator
@@ -11,7 +11,7 @@ import { TDecoratable } from '@forts/resilience4ts-core';
  * computed key, the cached value will be returned instead of executing the decorated function.
  */
 export const Cache = (options: CacheConfig) => {
-  return <T extends TDecoratable>(
+  return <T extends Decoratable>(
     _: object,
     propertyKey: string,
     descriptor: TypedPropertyDescriptor<T>,
@@ -24,7 +24,7 @@ export const Cache = (options: CacheConfig) => {
     const cache = CacheImpl.of(propertyKey, options);
 
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return cache.onBound(originalMethod, this)(...args);
+      return cache.on(this, originalMethod)(...args);
     } as T;
 
     return descriptor;

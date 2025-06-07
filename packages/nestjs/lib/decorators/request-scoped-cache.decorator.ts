@@ -2,7 +2,7 @@ import {
   RequestScopedCache as RequestScopedCacheImpl,
   type RequestScopedCacheConfig,
 } from '@forts/resilience4ts-all';
-import { TDecoratable } from '@forts/resilience4ts-core';
+import { Decoratable } from '@forts/resilience4ts-core';
 
 /**
  * RequestScopedCache Decorator
@@ -16,7 +16,7 @@ import { TDecoratable } from '@forts/resilience4ts-core';
  * cached value will be returned instead of executing the decorated function.
  */
 export const RequestScopedCache = (options: RequestScopedCacheConfig) => {
-  return <T extends TDecoratable>(
+  return <T extends Decoratable>(
     _: object,
     propertyKey: string,
     descriptor: TypedPropertyDescriptor<T>,
@@ -29,7 +29,7 @@ export const RequestScopedCache = (options: RequestScopedCacheConfig) => {
     const cache = RequestScopedCacheImpl.of(propertyKey, options);
 
     descriptor.value = function (this: unknown, args: Parameters<T>) {
-      return cache.onBound(originalMethod, this)(...args);
+      return cache.on(this, originalMethod)(...args);
     } as T;
 
     return descriptor;

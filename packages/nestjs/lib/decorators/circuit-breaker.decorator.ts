@@ -2,7 +2,7 @@ import {
   CircuitBreaker as CircuitBreakerConfigImpl,
   type CircuitBreakerConfig,
 } from '@forts/resilience4ts-all';
-import { TDecoratable } from '@forts/resilience4ts-core';
+import { Decoratable } from '@forts/resilience4ts-core';
 
 /**
  * CircuitBreaker Decorator
@@ -17,7 +17,7 @@ import { TDecoratable } from '@forts/resilience4ts-core';
  * If the circuit is open, the decorated method will throw a {@link CircuitOpenException}.
  */
 export const CircuitBreaker = (options: CircuitBreakerConfig) => {
-  return <T extends TDecoratable>(
+  return <T extends Decoratable>(
     _: object,
     propertyKey: string,
     descriptor: TypedPropertyDescriptor<T>,
@@ -30,7 +30,7 @@ export const CircuitBreaker = (options: CircuitBreakerConfig) => {
     const circuit = CircuitBreakerConfigImpl.of(propertyKey, options);
 
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return circuit.onBound(originalMethod, this)(...args);
+      return circuit.on(this, originalMethod)(...args);
     } as T;
 
     return descriptor;

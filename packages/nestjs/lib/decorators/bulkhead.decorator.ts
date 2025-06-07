@@ -2,7 +2,7 @@ import {
   Bulkhead as BulkheadImpl,
   type BulkheadConfig as BaseBulkheadConfig,
 } from '@forts/resilience4ts-all';
-import { TDecoratable } from '@forts/resilience4ts-core';
+import { Decoratable } from '@forts/resilience4ts-core';
 
 /**
  * Bulkhead Decorator
@@ -15,7 +15,7 @@ import { TDecoratable } from '@forts/resilience4ts-core';
  * If the bulkhead is full, the decorated function will throw a {@link BulkheadFullException}.
  */
 export const Bulkhead = (options: BulkheadConfig) => {
-  return <T extends TDecoratable>(
+  return <T extends Decoratable>(
     target: object,
     propertyKey: string,
     descriptor: TypedPropertyDescriptor<T>,
@@ -28,7 +28,7 @@ export const Bulkhead = (options: BulkheadConfig) => {
     const bulkhead = BulkheadImpl.of(name, options);
     const originalMethod = descriptor.value;
     descriptor.value = function (this: unknown, ...args: Parameters<T>) {
-      return bulkhead.onBound(originalMethod, this)(...args);
+      return bulkhead.on(this, originalMethod)(...args);
     } as T;
 
     return descriptor;
